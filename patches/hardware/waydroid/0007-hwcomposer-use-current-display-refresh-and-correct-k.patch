@@ -1,0 +1,63 @@
+From 6a345c10c2b581bc761523fc0517e03f72d8a488 Mon Sep 17 00:00:00 2001
+From: Dick Valentine <asetium@gmail.com>
+Date: Fri, 16 Oct 2026 21:33:49 +0200
+Subject: [PATCH 07/11] hwcomposer: use current display refresh and correct key
+ range
+
+---
+ hwcomposer/wayland-hwc.cpp | 7 ++++---
+ hwcomposer/wayland-hwc.h   | 3 ++-
+ 2 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/hwcomposer/wayland-hwc.cpp b/hwcomposer/wayland-hwc.cpp
+index be2d51774ee0134487dc4bafe28c4b17e6fd2bf8..0b061b3fb06c40a5fe0bb8c29dfc4cb5d46b7ba2 100644
+--- a/hwcomposer/wayland-hwc.cpp
++++ b/hwcomposer/wayland-hwc.cpp
+@@ -718,7 +718,7 @@ send_key_event(display *data, uint32_t key, wl_keyboard_key_state state)
+     res = write(display->input_fd[INPUT_KEYBOARD], &event, sizeof(event));
+     if (res < sizeof(event))
+         ALOGE("Failed to write event for InputFlinger: %s", strerror(errno));
+-    display->keysDown[(uint8_t)key] = state;
++    display->keysDown[key] = state;
+ }
+ 
+ static void
+@@ -1391,11 +1391,12 @@ static const struct zwp_linux_dmabuf_v1_listener dmabuf_listener = {
+ 
+ static void
+ output_handle_mode(void *data, struct wl_output *,
+-                   uint32_t, int32_t width, int32_t height,
++                   uint32_t flags, int32_t width, int32_t height,
+                    int32_t refresh)
+ {
+     struct display *d = (struct display *)data;
+-    d->refresh = std::max(d->refresh, refresh);
++    if ((flags & WL_OUTPUT_MODE_CURRENT) && refresh > 0)
++        d->refresh = refresh;
+ 
+     // Fallback size
+     // We can't do anything meaningful if there's more than one display, just pick one at random
+diff --git a/hwcomposer/wayland-hwc.h b/hwcomposer/wayland-hwc.h
+index 43bad1e0ae5d3601870b5221d7f842f46adf318e..9069e033aeb2f7a2d52b17f92846717f27751c04 100644
+--- a/hwcomposer/wayland-hwc.h
++++ b/hwcomposer/wayland-hwc.h
+@@ -29,6 +29,7 @@
+ #pragma once
+ 
+ #include <cutils/native_handle.h>
++#include <linux/input.h>
+ 
+ #include <stdint.h>
+ #include <stdio.h>
+@@ -377,7 +378,7 @@ struct display {
+     std::map<uint32_t, struct handleExt> layer_handles_ext;
+     struct handleExt target_layer_handle_ext;
+     std::unordered_map<buffer_handle_t, std::unique_ptr<buffer>> buffer_map;
+-    std::array<uint8_t, 239> keysDown;
++    std::array<uint8_t, KEY_CNT> keysDown;
+ 
+     std::unique_ptr<cursor_handler> cursor_handler;
+     bool supports_cursor_viewport;
+-- 
+2.56.0
+

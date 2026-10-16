@@ -1,0 +1,47 @@
+From 354245357374d7d9d31719345971ae629324c6b5 Mon Sep 17 00:00:00 2001
+From: Dick Valentine <asetium@gmail.com>
+Date: Mon, 12 Oct 2026 11:37:47 +0200
+Subject: [PATCH 05/11] hwcomposer: fix C++ compilation with Android 16
+ toolchain
+
+---
+ hwcomposer/WaydroidClipboard.cpp | 2 +-
+ hwcomposer/gralloc_handler.cpp   | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/hwcomposer/WaydroidClipboard.cpp b/hwcomposer/WaydroidClipboard.cpp
+index af4e6ab8aebf1d1f228b3d77bfb542a3f47e9042..672a5c02d64f26ae45edfac6e6b41d4c696e2268 100644
+--- a/hwcomposer/WaydroidClipboard.cpp
++++ b/hwcomposer/WaydroidClipboard.cpp
+@@ -27,7 +27,7 @@
+ 
+ #include <wayland-client.h>
+ 
+-static const std::vector<const std::string> MIME_TYPES = {
++static const std::vector<std::string> MIME_TYPES = {
+     "text/plain;charset=utf-8",
+     "UTF8_STRING",
+     "text/plain",
+diff --git a/hwcomposer/gralloc_handler.cpp b/hwcomposer/gralloc_handler.cpp
+index a5fbbad37e06dae3c6f6fdd237db66852fc8b317..54acd181032abf5ed197061500380ce41bc779d4 100644
+--- a/hwcomposer/gralloc_handler.cpp
++++ b/hwcomposer/gralloc_handler.cpp
+@@ -427,7 +427,7 @@ gralloc_handler::create_buffer_func gralloc_handler::select_create_buffer_impl(d
+         if (display->android_wlegl) return create_buffer_android;
+         if (display->dmabuf) return create_buffer_bifrost_dmabuf;
+         ALOGE("GRALLOC_ANDROID needs android_wlegl or a DMA-BUF importer; refusing SHM");
+-        return [](display *, const buffer_metadata&, buffer_handle_t) -> std::unique_ptr<buffer> {
++        return [](struct display *, const buffer_metadata&, buffer_handle_t) -> std::unique_ptr<buffer> {
+             return nullptr;
+         };
+     } else {
+@@ -446,4 +446,4 @@ gralloc_handler::update_shm_buffer_func gralloc_handler::select_update_shm_buffe
+ gralloc_handler::gralloc_handler(display *display)
+     : get_buffer_metadata_impl(select_get_buffer_metadata_impl(display->gtype))
+     , create_buffer_impl(select_create_buffer_impl(display, display->gtype))
+-    , update_shm_buffer_impl(select_update_shm_buffer_impl(display->gtype)) { }
+\ No newline at end of file
++    , update_shm_buffer_impl(select_update_shm_buffer_impl(display->gtype)) { }
+-- 
+2.56.0
+

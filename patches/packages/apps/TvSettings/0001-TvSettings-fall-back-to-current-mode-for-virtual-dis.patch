@@ -1,0 +1,27 @@
+From 23aadfbed7afca076b20eb25bb3dd3d77bb4f636 Mon Sep 17 00:00:00 2001
+From: Dick Valentine <asetium@gmail.com>
+Date: Fri, 16 Oct 2026 23:14:09 +0200
+Subject: [PATCH] TvSettings: fall back to current mode for virtual displays
+
+---
+ .../device/displaysound/ResolutionSelectionFragment.java      | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/Settings/src/com/android/tv/settings/device/displaysound/ResolutionSelectionFragment.java b/Settings/src/com/android/tv/settings/device/displaysound/ResolutionSelectionFragment.java
+index fcc0cdf9f4def68a69bb2d6ab21d3cc0c84738d2..a61ead81b6e27d948ee3ab286c78a00d937b4146 100644
+--- a/Settings/src/com/android/tv/settings/device/displaysound/ResolutionSelectionFragment.java
++++ b/Settings/src/com/android/tv/settings/device/displaysound/ResolutionSelectionFragment.java
+@@ -149,6 +149,10 @@ public class ResolutionSelectionFragment extends PreferenceControllerFragment {
+ 
+         Display display = mDisplayManager.getDisplay(Display.DEFAULT_DISPLAY);
+         mAutoMode = display.getSystemPreferredDisplayMode();
++        if (mAutoMode == null) {
++            // Virtual displays may not expose a boot-preferred mode.
++            mAutoMode = display.getMode();
++        }
+         final String summary = getResources().getString(R.string.resolution_display_mode,
+                 ResolutionSelectionUtils.getResolutionString(
+                         mAutoMode.getPhysicalWidth(), mAutoMode.getPhysicalHeight()),
+-- 
+2.56.0
+

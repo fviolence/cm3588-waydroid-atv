@@ -1,0 +1,239 @@
+From 3474ad7bb3992edc04ac87f43c6170ccbebff99b Mon Sep 17 00:00:00 2001
+From: Dick Valentine <asetium@gmail.com>
+Date: Fri, 16 Oct 2026 21:55:02 +0200
+Subject: [PATCH 09/11] hwcomposer: validate Bifrost DMA-BUF layout and add
+ optional import probe
+
+---
+ hwcomposer/gralloc_handler.cpp | 180 ++++++++++++++++++++++++++++++++-
+ 1 file changed, 176 insertions(+), 4 deletions(-)
+
+diff --git a/hwcomposer/gralloc_handler.cpp b/hwcomposer/gralloc_handler.cpp
+index 54acd181032abf5ed197061500380ce41bc779d4..2aab84034b7470242a0fd73d26a03384796a9355 100644
+--- a/hwcomposer/gralloc_handler.cpp
++++ b/hwcomposer/gralloc_handler.cpp
+@@ -34,11 +34,14 @@
+ #include <iterator>
+ #include <memory>
+ #include <vector>
++#include <cerrno>
+ 
+ #include <linux/memfd.h>
+ #include <sys/syscall.h>
++#include <sys/stat.h>
+ #include <drm_fourcc.h>
+ #include <wayland-client.h>
++#include <fcntl.h>
+ 
+ #include <log/log.h>
+ #include <cutils/properties.h>
+@@ -330,6 +333,131 @@ namespace {
+                 0, static_cast<uint32_t>(requested_format)};
+     }
+ 
++    // One-shot asynchronous DMA-BUF import test.
++    // This never attaches the resulting wl_buffer to a surface.
++    void probe_bifrost_dmabuf_import(
++            display* d,
++            const buffer_metadata& metadata,
++            buffer_handle_t handle,
++            uint32_t fourcc,
++            uint64_t modifier,
++            int64_t stride,
++            int64_t offset)
++    {
++        static std::atomic<bool> started{false};
++
++        if (!property_get_bool(
++                    "persist.waydroid.bifrost_dmabuf_probe", false)) {
++            return;
++        }
++
++        // Only one import request per HWC process.
++        if (started.exchange(true, std::memory_order_relaxed)) {
++            return;
++        }
++
++        // Additional bounds check before sending anything to Weston.
++        // This helper currently accepts only single-plane ABGR8888.
++        const uint64_t required_bytes =
++                static_cast<uint64_t>(offset) +
++                static_cast<uint64_t>(stride) *
++                        static_cast<uint64_t>(metadata.height);
++
++        if (required_bytes > UINT32_MAX) {
++            ALOGE("BIFROST_IMPORT_PROBE: DMA-BUF layout exceeds "
++                  "32-bit protocol bounds (required=%llu)",
++                  static_cast<unsigned long long>(required_bytes));
++            return;
++        }
++
++        const off_t available_bytes =
++                lseek(handle->data[0], 0, SEEK_END);
++
++        if (available_bytes < 0) {
++            const int saved_errno = errno;
++            ALOGE("BIFROST_IMPORT_PROBE: DMA-BUF size query failed "
++                  "(errno=%d)", saved_errno);
++            return;
++        }
++
++        if (static_cast<uint64_t>(available_bytes) < required_bytes) {
++            ALOGE("BIFROST_IMPORT_PROBE: insufficient DMA-BUF size "
++                  "(required=%llu, available=%lld)",
++                  static_cast<unsigned long long>(required_bytes),
++                  static_cast<long long>(available_bytes));
++            return;
++        }
++
++        struct stat st{};
++
++        static const zwp_linux_buffer_params_v1_listener listener = {
++            // created: Weston accepted the buffer.
++            [](void*, zwp_linux_buffer_params_v1* params,
++               wl_buffer* wlbuf) {
++                ALOGW("BIFROST_IMPORT_PROBE: CREATED");
++
++                // Do not attach it to any Wayland surface.
++                wl_buffer_destroy(wlbuf);
++                zwp_linux_buffer_params_v1_destroy(params);
++            },
++
++            // failed: Weston rejected the buffer.
++            [](void*, zwp_linux_buffer_params_v1* params) {
++                ALOGE("BIFROST_IMPORT_PROBE: FAILED");
++                zwp_linux_buffer_params_v1_destroy(params);
++            }
++        };
++
++        zwp_linux_buffer_params_v1* params =
++                zwp_linux_dmabuf_v1_create_params(d->dmabuf);
++
++        if (!params) {
++            ALOGE("BIFROST_IMPORT_PROBE: create_params failed");
++            return;
++        }
++
++        if (zwp_linux_buffer_params_v1_add_listener(
++                    params, &listener, nullptr) != 0) {
++            ALOGE("BIFROST_IMPORT_PROBE: add_listener failed");
++            zwp_linux_buffer_params_v1_destroy(params);
++            return;
++        }
++
++        zwp_linux_buffer_params_v1_add(
++                params,
++                handle->data[0],
++                0,
++                static_cast<uint32_t>(offset),
++                static_cast<uint32_t>(stride),
++                static_cast<uint32_t>(modifier >> 32),
++                static_cast<uint32_t>(modifier));
++
++        ALOGW("BIFROST_IMPORT_PROBE: SUBMITTED "
++              "%ux%u fourcc=0x%08x modifier=0x%016llx "
++              "stride=%lld offset=%lld fd0=%d",
++              metadata.width,
++              metadata.height,
++              fourcc,
++              static_cast<unsigned long long>(modifier),
++              static_cast<long long>(stride),
++              static_cast<long long>(offset),
++              handle->data[0]);
++
++        zwp_linux_buffer_params_v1_create(
++                params,
++                static_cast<int32_t>(metadata.width),
++                static_cast<int32_t>(metadata.height),
++                fourcc,
++                0);
++
++        if (wl_display_flush(d->display) < 0 && errno != EAGAIN) {
++            ALOGE("BIFROST_IMPORT_PROBE: flush failed errno=%d", errno);
++        }
++
++        // Do NOT destroy params here.
++        // Its created/failed callback owns the cleanup.
++    }
++
+     std::unique_ptr<buffer> create_buffer_bifrost_dmabuf(
+             display *display, const buffer_metadata& metadata, buffer_handle_t handle) {
+         if (!handle || !display->dmabuf) return nullptr;
+@@ -340,6 +468,27 @@ namespace {
+         const int ef = mapper.getPixelFormatFourCC(handle, &fourcc);
+         const int em = mapper.getPixelFormatModifier(handle, &modifier);
+         const int ep = mapper.getPlaneLayouts(handle, &planes);
++
++        uint64_t usage = 0;
++        const int eu = mapper.getUsage(handle, &usage);
++
++        static std::atomic<uint32_t> usage_samples{0};
++        const uint32_t sample =
++                usage_samples.fetch_add(1, std::memory_order_relaxed);
++
++        if (sample < 16 || (sample % 1024) == 0) {
++            ALOGW("BIFROST_USAGE: status=%d usage=0x%016llx "
++                  "width=%u height=%u fds=%d "
++                  "fourcc=0x%08x modifier=0x%016llx",
++                  eu,
++                  static_cast<unsigned long long>(usage),
++                  metadata.width,
++                  metadata.height,
++                  handle->numFds,
++                  fourcc,
++                  static_cast<unsigned long long>(modifier));
++        }
++
+         const int64_t stride = planes.empty() ? 0 : planes.front().strideInBytes;
+         const int64_t offset = planes.empty() ? 0 : planes.front().offsetInBytes;
+         if (ef || em || ep) {
+@@ -347,12 +496,27 @@ namespace {
+                               metadata.height, fourcc, modifier, planes.size(), stride, offset);
+             return nullptr;
+         }
+-        if (handle->numFds != 1 || planes.size() != 1 || !fourcc ||
+-            stride <= 0 || stride > INT32_MAX || offset < 0 || offset > INT32_MAX) {
+-            log_bifrost_probe("unsupported fd/plane/stride layout", handle, metadata.width,
+-                              metadata.height, fourcc, modifier, planes.size(), stride, offset);
++
++        const bool valid_bifrost_fds =
++                handle->numFds == 2 &&
++                handle->data[0] >= 0 &&
++                handle->data[1] >= 0 &&
++                fcntl(handle->data[0], F_GETFD) != -1 &&
++                fcntl(handle->data[1], F_GETFD) != -1;
++
++        if (!valid_bifrost_fds ||
++            planes.size() != 1 ||
++            fourcc != DRM_FORMAT_ABGR8888 ||
++            modifier != DRM_FORMAT_MOD_LINEAR ||
++            stride <= 0 || stride > INT32_MAX ||
++            offset < 0 || offset > INT32_MAX) {
++            log_bifrost_probe("unsupported fd/plane/stride layout",
++                              handle, metadata.width, metadata.height,
++                              fourcc, modifier, planes.size(),
++                              stride, offset);
+             return nullptr;
+         }
++
+         // Weston must explicitly advertise the FourCC + modifier combination.
+         const auto it = display->modifiers.find(fourcc);
+         if (!display->formats.count(fourcc) || it == display->modifiers.end() ||
+@@ -361,6 +525,14 @@ namespace {
+                               metadata.height, fourcc, modifier, planes.size(), stride, offset);
+             return nullptr;
+         }
++        probe_bifrost_dmabuf_import(
++            display,
++            metadata,
++            handle,
++            fourcc,
++            modifier,
++            stride,
++            offset);
+         if (!property_get_bool("persist.waydroid.bifrost_dmabuf", false)) {
+             log_bifrost_probe("ready (import DISABLED)", handle, metadata.width,
+                               metadata.height, fourcc, modifier, planes.size(), stride, offset);
+-- 
+2.56.0
+

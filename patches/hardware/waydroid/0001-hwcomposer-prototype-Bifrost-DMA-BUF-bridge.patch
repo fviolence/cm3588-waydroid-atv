@@ -1,0 +1,398 @@
+From 4f790a9573438bf466b758358e48a9988b625c6e Mon Sep 17 00:00:00 2001
+From: Waydroid HWC Lab <hwc-lab@localhost>
+Date: Mon, 12 Oct 2026 01:40:30 +0200
+Subject: [PATCH 01/11] hwcomposer: prototype Bifrost DMA-BUF bridge
+
+---
+ hwcomposer/gralloc_handler.cpp | 188 ++++++++++++++++++++++++++-------
+ hwcomposer/hwcomposer.cpp      |   8 +-
+ hwcomposer/wayland-hwc.cpp     |   5 +-
+ hwcomposer/wayland-hwc.h       |  12 +--
+ 4 files changed, 164 insertions(+), 49 deletions(-)
+
+diff --git a/hwcomposer/gralloc_handler.cpp b/hwcomposer/gralloc_handler.cpp
+index a86b9aac9888ff23a03f2ef8a9e27d97a082d0c9..a5fbbad37e06dae3c6f6fdd237db66852fc8b317 100644
+--- a/hwcomposer/gralloc_handler.cpp
++++ b/hwcomposer/gralloc_handler.cpp
+@@ -26,7 +26,14 @@
+ #include "gralloc_handler.h"
+ 
+ #include <cstdint>
++#include <climits>
++#include <cerrno>
++#include <cstring>
++#include <atomic>
++#include <algorithm>
++#include <iterator>
+ #include <memory>
++#include <vector>
+ 
+ #include <linux/memfd.h>
+ #include <sys/syscall.h>
+@@ -34,6 +41,7 @@
+ #include <wayland-client.h>
+ 
+ #include <log/log.h>
++#include <cutils/properties.h>
+ #include <ui/Rect.h>
+ #include <ui/GraphicBufferMapper.h>
+ #include <gralloc_handle.h>
+@@ -46,8 +54,8 @@
+ #include "wayland-hwc.h"
+ 
+ namespace {
+-    uint32_t ConvertHalFormatToShm(uint32_t hal_format) {
+-        uint32_t fmt;
++    int32_t ConvertHalFormatToShm(uint32_t hal_format) {
++        int32_t fmt;
+ 
+         switch (hal_format) {
+             case HAL_PIXEL_FORMAT_RGBX_8888:
+@@ -68,11 +76,20 @@ namespace {
+     };
+ }
+ std::unique_ptr<buffer> create_shm_wl_buffer(display *display, const buffer_metadata& metadata, buffer_handle_t handle) {
+-    std::unique_ptr<buffer> buf { new buffer() };
++    if (!display->shm || metadata.width == 0 || metadata.height == 0 ||
++        metadata.width > INT32_MAX / 4 || metadata.height > INT32_MAX /
++        (static_cast<int64_t>(metadata.width) * 4)) {
++        ALOGE("Invalid dimensions for SHM buffer: %ux%u", metadata.width, metadata.height);
++        return nullptr;
++    }
++    const int32_t shm_format = ConvertHalFormatToShm(metadata.format);
++    if (shm_format < 0) {
++        return nullptr; // Never send -EINVAL as a Wayland pixel format.
++    }
+ 
+-    // Assume 4bpp formats or none of this is going to work
+-    int shm_stride = metadata.width * 4;
+-    int size = shm_stride * metadata.height;
++    std::unique_ptr<buffer> buf { new buffer() };
++    const int shm_stride = metadata.width * 4;
++    const int size = shm_stride * metadata.height;
+ 
+     buf->metadata = metadata;
+     buf->handle = handle;
+@@ -80,11 +97,12 @@ std::unique_ptr<buffer> create_shm_wl_buffer(display *display, const buffer_meta
+     buf->isShm = true;
+     buf->size = size;
+ 
+-    auto shm_format = ConvertHalFormatToShm(metadata.format);
+-    assert(shm_format >= 0);
+-
+     int fd = syscall(SYS_memfd_create, "buffer", MFD_ALLOW_SEALING);
+-    ftruncate(fd, size);
++    if (fd < 0 || ftruncate(fd, size) != 0) {
++        ALOGE("Failed to allocate SHM backing: %s", strerror(errno));
++        if (fd >= 0) close(fd);
++        return nullptr;
++    }
+     buf->shm_data = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+     if (buf->shm_data == MAP_FAILED) {
+         ALOGE("mmap failed");
+@@ -92,27 +110,18 @@ std::unique_ptr<buffer> create_shm_wl_buffer(display *display, const buffer_meta
+         return nullptr;
+     }
+     struct wl_shm_pool *pool = wl_shm_create_pool(display->shm, fd, size);
+-    buf->wl_buffer = wl_shm_pool_create_buffer(pool, 0, metadata.width, metadata.height, shm_stride, shm_format);
+-    wl_buffer_add_listener(buf->wl_buffer, &buffer_listener, nullptr);
+-    wl_shm_pool_destroy(pool);
++    if (pool) {
++        buf->wl_buffer = wl_shm_pool_create_buffer(pool, 0, metadata.width, metadata.height,
++                                                   shm_stride, shm_format);
++        wl_shm_pool_destroy(pool);
++    }
+     close(fd);
+-
++    if (!buf->wl_buffer) return nullptr;
++    wl_buffer_add_listener(buf->wl_buffer, &buffer_listener, nullptr);
+     return buf;
+ }
+ 
+ namespace {
+-    //TODO: Implement failure handling for dmabuf
+-    void create_failed(void *data __unused, zwp_linux_buffer_params_v1 *params __unused)
+-    {
+-        ALOGE("%s: zwp_linux_buffer_params.create_immed failed.", __func__);
+-        abort();
+-    }
+-
+-    const struct zwp_linux_buffer_params_v1_listener params_listener = {
+-            [](void *, zwp_linux_buffer_params_v1 *, wl_buffer *) {},
+-            create_failed
+-    };
+-
+     bool isFormatSupported(struct display *display, uint32_t format) {
+         return display->formats.count(format) == 1;
+     }
+@@ -166,7 +175,9 @@ std::unique_ptr<buffer> create_dmabuf_wl_buffer(display *display, const buffer_m
+                                                                 int prime_fd, int drm_format, int byte_stride,
+                                                                 int offset, uint64_t modifier, buffer_handle_t handle)
+ {
+-    assert(prime_fd >= 0);
++    if (!display->dmabuf || prime_fd < 0 || !metadata.width || !metadata.height ||
++        metadata.width > INT32_MAX || metadata.height > INT32_MAX || byte_stride <= 0 ||
++        offset < 0) return nullptr;
+ 
+     std::unique_ptr<buffer> buf { new buffer() };
+ 
+@@ -176,15 +187,17 @@ std::unique_ptr<buffer> create_dmabuf_wl_buffer(display *display, const buffer_m
+     if (drm_format < 0) {
+         drm_format = ConvertHalFormatToDrm(display, metadata.format);
+     }
+-    assert(drm_format >= 0);
++    if (drm_format < 0) return nullptr;
+ 
+     zwp_linux_buffer_params_v1 *params = zwp_linux_dmabuf_v1_create_params(display->dmabuf);
++    if (!params) return nullptr;
+     zwp_linux_buffer_params_v1_add(params, prime_fd, 0, offset, byte_stride, modifier >> 32, modifier & 0xffffffff);
+-    zwp_linux_buffer_params_v1_add_listener(params, &params_listener, nullptr);
+ 
+-    buf->wl_buffer = zwp_linux_buffer_params_v1_create_immed(params, buf->metadata.width, buf->metadata.height, drm_format, 0);
++    buf->wl_buffer = zwp_linux_buffer_params_v1_create_immed(params, buf->metadata.width,
++                                                                buf->metadata.height, drm_format, 0);
++    zwp_linux_buffer_params_v1_destroy(params);
++    if (!buf->wl_buffer) return nullptr;
+     wl_buffer_add_listener(buf->wl_buffer, &buffer_listener, nullptr);
+-
+     return buf;
+ }
+ 
+@@ -201,6 +214,7 @@ std::unique_ptr<buffer> create_android_wl_buffer(display *display, const buffer_
+     memcpy(the_ints, handle->data + handle->numFds, handle->numInts * sizeof(int));
+     android_wlegl_handle *wlegl_handle = android_wlegl_create_handle(display->android_wlegl, handle->numFds, &ints);
+     wl_array_release(&ints);
++    if (!wlegl_handle) return nullptr;
+ 
+     for (int i = 0; i < handle->numFds; i++) {
+         android_wlegl_handle_add_fd(wlegl_handle, handle->data[i]);
+@@ -208,6 +222,7 @@ std::unique_ptr<buffer> create_android_wl_buffer(display *display, const buffer_
+ 
+     buf->wl_buffer = android_wlegl_create_buffer(display->android_wlegl, buf->metadata.width, buf->metadata.height, buf->metadata.pixel_stride, metadata.format, GRALLOC_USAGE_HW_RENDER, wlegl_handle);
+     android_wlegl_handle_destroy(wlegl_handle);
++    if (!buf->wl_buffer) return nullptr;
+ 
+     wl_buffer_add_listener(buf->wl_buffer, &buffer_listener, nullptr);
+ 
+@@ -216,17 +231,20 @@ std::unique_ptr<buffer> create_android_wl_buffer(display *display, const buffer_
+ 
+ namespace {
+ buffer_metadata get_buffer_metadata_generic(display *display, hwc_layer_1_t *layer, size_t pos) {
+-    uint32_t format, pixel_stride, width, height;
++    uint32_t format = 0, pixel_stride = 0, width = 0, height = 0;
+     if (layer->compositionType == HWC_FRAMEBUFFER_TARGET) {
+         format = display->target_layer_handle_ext.format;
+         pixel_stride = display->target_layer_handle_ext.stride;
+         width = display->target_layer_handle_ext.width;
+         height = display->target_layer_handle_ext.height;
+-    } else {
+-        format = display->layer_handles_ext[pos].format;
+-        pixel_stride = display->layer_handles_ext[pos].stride;
+-        width = display->layer_handles_ext[pos].width;
+-        height = display->layer_handles_ext[pos].height;
++    } else if (pos < display->layer_handles_ext.size()) {
++        // Keys are z-order; pos is the index in hwLayers[].
++        auto it = display->layer_handles_ext.begin();
++        std::advance(it, pos);
++        format = it->second.format;
++        pixel_stride = it->second.stride;
++        width = it->second.width;
++        height = it->second.height;
+     }
+ 
+     if (!width)
+@@ -270,6 +288,92 @@ std::unique_ptr<buffer> create_buffer_android(display *display, const buffer_met
+     return create_android_wl_buffer(display, metadata, handle);
+ }
+ 
++// Experimental Bifrost DMA-BUF bridge. Gralloc4 plane layouts do not identify
++// which native-handle FD backs each plane. Restrict this initial implementation
++// to precisely one DMA-BUF FD and one plane. Unsupported layouts fail closed.
++// Import is OFF by default: persist.waydroid.bifrost_dmabuf=1 opts in.
++// The first stage prints mapper metadata without sending anything to Weston.
++namespace {
++    void log_bifrost_probe(const char* reason, buffer_handle_t handle,
++                           uint32_t width, uint32_t height, uint32_t fourcc,
++                           uint64_t modifier, size_t planes, int64_t stride,
++                           int64_t offset) {
++        static std::atomic<uint32_t> attempts {0};
++        const auto n = attempts.fetch_add(1, std::memory_order_relaxed);
++        if (n < 16 || (n % 128) == 0) {
++            ALOGW("BIFROST_DMABUF_PROBE: %s handle=%p fds=%d %ux%u fourcc=0x%08x "
++                  "modifier=0x%016llx planes=%zu stride=%lld offset=%lld attempt=%u",
++                  reason, handle, handle ? handle->numFds : -1, width, height,
++                  fourcc, static_cast<unsigned long long>(modifier), planes,
++                  static_cast<long long>(stride), static_cast<long long>(offset), n);
++        }
++    }
++
++    buffer_metadata get_buffer_metadata_bifrost(display *, hwc_layer_1_t *layer, size_t) {
++        if (!layer->handle) return {};
++        auto& mapper = android::GraphicBufferMapper::get();
++        uint64_t width = 0, height = 0;
++        android::ui::PixelFormat requested_format {};
++        const int ew = mapper.getWidth(layer->handle, &width);
++        const int eh = mapper.getHeight(layer->handle, &height);
++        const int ef = mapper.getPixelFormatRequested(layer->handle, &requested_format);
++        if (ew || eh || ef || !width || !height || width > INT32_MAX ||
++            height > INT32_MAX || static_cast<int32_t>(requested_format) <= 0) {
++            log_bifrost_probe("invalid basic gralloc metadata", layer->handle,
++                              static_cast<uint32_t>(width), static_cast<uint32_t>(height),
++                              0, 0, 0, 0, 0);
++            return {};
++        }
++        // For DMA-BUF, pixel stride is not used to describe its planes. The
++        // actual byte strides are read from Gralloc4 PlaneLayout below.
++        return {static_cast<uint32_t>(height), static_cast<uint32_t>(width),
++                0, static_cast<uint32_t>(requested_format)};
++    }
++
++    std::unique_ptr<buffer> create_buffer_bifrost_dmabuf(
++            display *display, const buffer_metadata& metadata, buffer_handle_t handle) {
++        if (!handle || !display->dmabuf) return nullptr;
++        auto& mapper = android::GraphicBufferMapper::get();
++        uint32_t fourcc = 0;
++        uint64_t modifier = DRM_FORMAT_MOD_INVALID;
++        std::vector<android::ui::PlaneLayout> planes;
++        const int ef = mapper.getPixelFormatFourCC(handle, &fourcc);
++        const int em = mapper.getPixelFormatModifier(handle, &modifier);
++        const int ep = mapper.getPlaneLayouts(handle, &planes);
++        const int64_t stride = planes.empty() ? 0 : planes.front().strideInBytes;
++        const int64_t offset = planes.empty() ? 0 : planes.front().offsetInBytes;
++        if (ef || em || ep) {
++            log_bifrost_probe("mapper metadata query failed", handle, metadata.width,
++                              metadata.height, fourcc, modifier, planes.size(), stride, offset);
++            return nullptr;
++        }
++        if (handle->numFds != 1 || planes.size() != 1 || !fourcc ||
++            stride <= 0 || stride > INT32_MAX || offset < 0 || offset > INT32_MAX) {
++            log_bifrost_probe("unsupported fd/plane/stride layout", handle, metadata.width,
++                              metadata.height, fourcc, modifier, planes.size(), stride, offset);
++            return nullptr;
++        }
++        // Weston must explicitly advertise the FourCC + modifier combination.
++        const auto it = display->modifiers.find(fourcc);
++        if (!display->formats.count(fourcc) || it == display->modifiers.end() ||
++            std::find(it->second.begin(), it->second.end(), modifier) == it->second.end()) {
++            log_bifrost_probe("not advertised by Weston", handle, metadata.width,
++                              metadata.height, fourcc, modifier, planes.size(), stride, offset);
++            return nullptr;
++        }
++        if (!property_get_bool("persist.waydroid.bifrost_dmabuf", false)) {
++            log_bifrost_probe("ready (import DISABLED)", handle, metadata.width,
++                              metadata.height, fourcc, modifier, planes.size(), stride, offset);
++            return nullptr;
++        }
++        log_bifrost_probe("attempting import (EXPERIMENTAL)", handle, metadata.width,
++                          metadata.height, fourcc, modifier, planes.size(), stride, offset);
++        return create_dmabuf_wl_buffer(display, metadata, handle->data[0],
++                                       static_cast<int>(fourcc), static_cast<int>(stride),
++                                       static_cast<int>(offset), modifier, handle);
++    }
++}
++
+ void update_shm_buffer_generic(display *display, buffer *buffer) {
+     display->egl_work_queue.emplace_back(std::bind(egl_render_to_pixels, display, buffer));
+     sem_post(&display->egl_go);
+@@ -306,6 +410,7 @@ gralloc_handler::get_buffer_metadata_func gralloc_handler::select_get_buffer_met
+         case GrallocType::GRALLOC_CROS:
+             return get_buffer_metadata_cros;
+         case GrallocType::GRALLOC_ANDROID:
++            return get_buffer_metadata_bifrost;
+         case GrallocType::GRALLOC_DEFAULT:
+             return get_buffer_metadata_generic;
+         default:
+@@ -318,8 +423,13 @@ gralloc_handler::create_buffer_func gralloc_handler::select_create_buffer_impl(d
+         return create_buffer_gbm;
+     } else if (gralloc_type == GrallocType::GRALLOC_CROS && display->dmabuf) {
+         return create_buffer_cros;
+-    } else if (gralloc_type == GrallocType::GRALLOC_ANDROID && display->android_wlegl) {
+-        return create_buffer_android;
++    } else if (gralloc_type == GrallocType::GRALLOC_ANDROID) {
++        if (display->android_wlegl) return create_buffer_android;
++        if (display->dmabuf) return create_buffer_bifrost_dmabuf;
++        ALOGE("GRALLOC_ANDROID needs android_wlegl or a DMA-BUF importer; refusing SHM");
++        return [](display *, const buffer_metadata&, buffer_handle_t) -> std::unique_ptr<buffer> {
++            return nullptr;
++        };
+     } else {
+         return create_buffer_generic;
+     }
+diff --git a/hwcomposer/hwcomposer.cpp b/hwcomposer/hwcomposer.cpp
+index 70672837159e8f947c17bb9640229237e5c2091c..0deadc0a9e7c070fe4106b762f9abaa186cf5425 100644
+--- a/hwcomposer/hwcomposer.cpp
++++ b/hwcomposer/hwcomposer.cpp
+@@ -57,7 +57,6 @@
+ #include "modes/multi-window.h"
+ #include "modes/single-window.h"
+ 
+-using ::android::hardware::configureRpcThreadpool;
+ using ::android::hardware::joinRpcThreadpool;
+ 
+ using ::vendor::waydroid::display::V1_2::IWaydroidDisplay;
+@@ -103,7 +102,12 @@ namespace {
+ 
+     buffer *get_wl_buffer(waydroid_hwc_composer_device_1 *pdev, hwc_layer_1_t *layer, size_t pos) {
+         const auto& gralloc_handler = pdev->gralloc_handler;
++        if (!layer->handle) return nullptr;
+         auto metadata = gralloc_handler.get_buffer_metadata(pdev->display, layer, pos);
++        if (!metadata.format || !metadata.width || !metadata.height) {
++            // May run before metadata arrives; never present an invalid buffer.
++            return nullptr;
++        }
+         buffer *buf = find_cached_buffer(pdev, metadata, layer->handle);
+ 
+         if (!buf) {
+@@ -641,7 +645,7 @@ static void* hwc_binder_thread(void* data) {
+     sp<IWaydroidClipboard> waydroidClipboard;
+ 
+     setpriority(PRIO_PROCESS, 0, HAL_PRIORITY_URGENT_DISPLAY);
+-    configureRpcThreadpool(1, true /*callerWillJoin*/);
++    // The composer service already configured the pool; do not shrink it here.
+ 
+     waydroidDisplay = new WaydroidDisplay(pdev->display);
+     if (waydroidDisplay == nullptr) {
+diff --git a/hwcomposer/wayland-hwc.cpp b/hwcomposer/wayland-hwc.cpp
+index cd36846c659880dc7f6b5b2f3b8149718ebf0e27..a3e345adca5ed0d11c756cffc288f385057025b1 100644
+--- a/hwcomposer/wayland-hwc.cpp
++++ b/hwcomposer/wayland-hwc.cpp
+@@ -85,8 +85,9 @@ using ::android::hardware::hidl_string;
+ struct buffer;
+ 
+ buffer::~buffer() {
+-    wl_buffer_destroy(wl_buffer);
+-    if (isShm)
++    if (wl_buffer)
++        wl_buffer_destroy(wl_buffer);
++    if (isShm && shm_data && shm_data != MAP_FAILED)
+         munmap(shm_data, size);
+ }
+ 
+diff --git a/hwcomposer/wayland-hwc.h b/hwcomposer/wayland-hwc.h
+index e5725596d5ff8d256f9a32c656e4c33a057370fb..43bad1e0ae5d3601870b5221d7f842f46adf318e 100644
+--- a/hwcomposer/wayland-hwc.h
++++ b/hwcomposer/wayland-hwc.h
+@@ -122,14 +122,14 @@ constexpr bool operator!=(const buffer_metadata &lhs, const buffer_metadata &rhs
+ }
+ 
+ struct buffer {
+-    struct wl_buffer *wl_buffer;
++    struct wl_buffer *wl_buffer {};
+ 
+-    buffer_handle_t handle;
+-    buffer_metadata metadata;
++    buffer_handle_t handle {};
++    buffer_metadata metadata {};
+ 
+-    bool isShm;
+-    void *shm_data;
+-    int size;
++    bool isShm {};
++    void *shm_data {};
++    int size {};
+ 
+     ~buffer();
+ };
+-- 
+2.56.0
+

@@ -1,0 +1,107 @@
+name: Source smoke test
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out umbrella project
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Set up Android repo tool
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSLo "$RUNNER_TEMP/repo" \
+            https://storage.googleapis.com/git-repo-downloads/repo
+          chmod +x "$RUNNER_TEMP/repo"
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+          git config --global user.name 'CM3588 CI'
+          git config --global user.email 'cm3588-ci@users.noreply.github.com'
+          bash -n scripts/apply-cm3588-patches.sh
+
+      - name: Initialize manifest from this checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git branch ci-manifest HEAD
+          mkdir -p "$RUNNER_TEMP/android"
+          cd "$RUNNER_TEMP/android"
+          "$RUNNER_TEMP/repo" init \
+            -u "file://$GITHUB_WORKSPACE" \
+            -b ci-manifest \
+            -m manifest/default.xml \
+            --no-clone-bundle
+          "$RUNNER_TEMP/repo" manifest -o "$RUNNER_TEMP/resolved.xml"
+          for path in device/cm3588/cm3588_atv vendor/cm3588 hardware/waydroid; do
+            "$RUNNER_TEMP/repo" list -a -p | grep -Fx "$path"
+          done
+
+      - name: Sync six small source projects
+        shell: bash
+        working-directory: ${{ runner.temp }}/android
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/repo" sync -c -j4 --no-tags \
+            device/cm3588/cm3588_atv \
+            vendor/cm3588 \
+            hardware/waydroid \
+            device/lineage/sepolicy \
+            external/google-highway \
+            vendor/extra
+
+      - name: Replay patches in isolated checkout
+        shell: bash
+        working-directory: ${{ runner.temp }}/android
+        run: |
+          set -euo pipefail
+          git -C hardware/waydroid am -3 \
+            "$GITHUB_WORKSPACE"/patches/hardware/waydroid/*.patch
+          git -C device/lineage/sepolicy am -3 \
+            "$RUNNER_TEMP"/android/vendor/extra/waydroid-patches/base-patches-36/device/lineage/sepolicy/*.patch
+          git -C device/lineage/sepolicy am -3 \
+            "$GITHUB_WORKSPACE"/patches/device/lineage/sepolicy/*.patch
+          git -C external/google-highway am -3 \
+            "$GITHUB_WORKSPACE"/patches/external/google-highway/*.patch
+          git -C vendor/extra am -3 \
+            "$GITHUB_WORKSPACE"/patches/vendor/extra/*.patch
+
+      - name: Check exact source tree identities
+        shell: bash
+        working-directory: ${{ runner.temp }}/android
+        run: |
+          set -euo pipefail
+          test "$(git -C device/cm3588/cm3588_atv rev-parse HEAD)" = \
+            '98c4fddaff0c9113108e8e9cc09aa77d0c8def3e'
+          test "$(git -C vendor/cm3588 rev-parse HEAD)" = \
+            'e725d4301fda5be3016f0f5afb57aad119b1fbca'
+          grep -Fq 'name: "arm.graphics-V5-ndk"' vendor/cm3588/Android.bp
+          grep -Fq 'name: "cm3588_graphics_common_v4_compat"' vendor/cm3588/Android.bp
+          test "$(git -C hardware/waydroid rev-parse HEAD^{tree})" = \
+            'cbcb47513784353ba5875b53ecebd07e9b60d96c'
+          for spec in \
+            'device/lineage/sepolicy:a9927590213e' \
+            'external/google-highway:07a0081f75a9' \
+            'vendor/extra:b26642e09c2d'; do
+            project="${spec%:*}"
+            expected="${spec#*:}"
+            actual="$(git -C "$project" rev-parse HEAD^{tree})"
+            test "${actual:0:12}" = "$expected" || {
+              echo "Tree mismatch in $project: $actual (expected prefix $expected)" >&2
+              exit 1
+            }
+            echo "PASS: $project ${actual}"
+          done
+          echo 'PASS: Public sources and selected patches reproduce known-good trees.'

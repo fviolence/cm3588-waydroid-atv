@@ -1,0 +1,29 @@
+From d8ea2a0ae5333159d860551ef9cad11db80ab21a Mon Sep 17 00:00:00 2001
+From: Dick Valentine <asetium@gmail.com>
+Date: Fri, 16 Oct 2026 23:04:39 +0200
+Subject: [PATCH 2/2] libsync: export software sync helpers through LLNDK
+
+---
+ libsync/libsync.map.txt | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/libsync/libsync.map.txt b/libsync/libsync.map.txt
+index d9369a0d3ccce7fa86acb310d6bc4c96d6563133..2f3197d187c91d74e2af983ee978b8867089fb41 100644
+--- a/libsync/libsync.map.txt
++++ b/libsync/libsync.map.txt
+@@ -23,9 +23,9 @@ LIBSYNC {
+     sync_fence_info; # llndk
+     sync_pt_info; # llndk
+     sync_fence_info_free; # llndk
+-    sw_sync_timeline_create;
+-    sw_sync_timeline_inc;
+-    sw_sync_fence_create;
++    sw_sync_timeline_create; # llndk
++    sw_sync_timeline_inc; # llndk
++    sw_sync_fence_create; # llndk
+   local:
+     *;
+ };
+-- 
+2.56.0
+

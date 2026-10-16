@@ -1,0 +1,21 @@
+From 91c04d45a11b8a31438b1e7a65820e10f0b6ce4f Mon Sep 17 00:00:00 2001
+From: Dick Valentine <asetium@gmail.com>
+Date: Fri, 16 Oct 2026 23:07:17 +0200
+Subject: [PATCH] sepolicy: gate GmsCore apk_verity access by board API
+
+Change-Id: I87efc508dba0104a50d1e8bba60586326ff0f262
+---
+ atv/vendor/gmscore_app.te | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/atv/vendor/gmscore_app.te b/atv/vendor/gmscore_app.te
+index 3b2c9f3bd4cc526d8c2356f6cf695695cc978dcb..acd1cd3736dab73d6510079bedc283295fff4d1c 100644
+--- a/atv/vendor/gmscore_app.te
++++ b/atv/vendor/gmscore_app.te
+@@ -1,2 +1,2 @@
+ get_prop(gmscore_app, apexd_prop)
+-get_prop(gmscore_app, apk_verity_prop)
++until_board_api(202604, `get_prop(gmscore_app, apk_verity_prop)')
+-- 
+2.56.0
+

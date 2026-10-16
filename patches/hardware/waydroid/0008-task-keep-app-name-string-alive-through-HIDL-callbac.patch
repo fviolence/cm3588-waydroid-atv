@@ -1,0 +1,26 @@
+From 411534ad4a26149d449ca2984e86fd0fae7edebc Mon Sep 17 00:00:00 2001
+From: Dick Valentine <asetium@gmail.com>
+Date: Fri, 16 Oct 2026 21:43:49 +0200
+Subject: [PATCH 08/11] task: keep app name string alive through HIDL callback
+
+---
+ interfaces/task/1.0/default/WaydroidTask.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/interfaces/task/1.0/default/WaydroidTask.cpp b/interfaces/task/1.0/default/WaydroidTask.cpp
+index dd1d0c8c5d058dda1322325005c4520925be2092..082dedf98fc072ecde8db787a72297b751bbd476 100644
+--- a/interfaces/task/1.0/default/WaydroidTask.cpp
++++ b/interfaces/task/1.0/default/WaydroidTask.cpp
+@@ -69,7 +69,8 @@ Return<void> WaydroidTask::getAppName(const hidl_string& packageName, getAppName
+     }
+     if (mPlatform != nullptr)
+         mPlatform->getAppName(android::String16(packageName.c_str()), &AppName);
+-    const char* OutAppName = android::String8(AppName).string();
++    const android::String8 OutAppNameUtf8(AppName);
++    const char* OutAppName = OutAppNameUtf8.c_str();
+     if (strlen(OutAppName) == 0)
+         OutAppName = packageName.c_str();
+     _hidl_cb(OutAppName);
+-- 
+2.56.0
+

@@ -1,0 +1,39 @@
+From b6915adb027caa91f77d5ac4bc21f594f47285a9 Mon Sep 17 00:00:00 2001
+From: Dick Valentine <asetium@gmail.com>
+Date: Fri, 16 Oct 2026 22:49:15 +0200
+Subject: [PATCH 1/2] codec2: use planar YUV420P for YV12 software conversion
+
+---
+ codec2/C2FFMPEGVideoDecodeComponent.cpp | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/codec2/C2FFMPEGVideoDecodeComponent.cpp b/codec2/C2FFMPEGVideoDecodeComponent.cpp
+index e2d12e56dd66eaa4655dbb6301686b8552ffd0fe..ea3a0c96c942d8e1940e080815d156baf7e9f9d0 100644
+--- a/codec2/C2FFMPEGVideoDecodeComponent.cpp
++++ b/codec2/C2FFMPEGVideoDecodeComponent.cpp
+@@ -921,13 +921,20 @@ std::shared_ptr<C2Buffer> C2FFMPEGVideoDecodeComponent::getOutputBuffer(const st
+         linesize[1] = linesize[2] = linesize[3] = 0;
+     }
+ 
++    // The software output path must match the allocated Gralloc layout.
++    // YV12 uses separate Y/U/V planes even when DRM PRIME is enabled.
++    const AVPixelFormat outputFormat =
++            mUtils->getPixelFormat(false) == HAL_PIXEL_FORMAT_YV12
++                    ? AV_PIX_FMT_YUV420P
++                    : mUtils->getAVFormat();
++
+     mImgConvertCtx = sws_getCachedContext(currentImgConvertCtx,
+            mFrame->width, mFrame->height, (AVPixelFormat)mFrame->format,
+-           mFrame->width, mFrame->height, mUtils->getAVFormat(),
++           mFrame->width, mFrame->height, outputFormat,
+            SWS_BICUBIC, NULL, NULL, NULL);
+     if (mImgConvertCtx && mImgConvertCtx != currentImgConvertCtx) {
+         ALOGD("getOutputBuffer: created video converter - %s => %s",
+-              av_get_pix_fmt_name((AVPixelFormat)mFrame->format), av_get_pix_fmt_name(mUtils->getAVFormat()));
++              av_get_pix_fmt_name((AVPixelFormat)mFrame->format), av_get_pix_fmt_name(outputFormat));
+     } else if (! mImgConvertCtx) {
+         ALOGE("getOutputBuffer: cannot initialize the conversion context");
+         return NULL;
+-- 
+2.56.0
+

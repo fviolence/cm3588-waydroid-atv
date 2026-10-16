@@ -1,0 +1,29 @@
+From cbf9ea3ce04c63a1cc544785dd6b60caeead018b Mon Sep 17 00:00:00 2001
+From: Dick Valentine <asetium@gmail.com>
+Date: Fri, 16 Oct 2026 22:03:41 +0200
+Subject: [PATCH 10/11] build: disable incompatible legacy WayDroid HAL modules
+
+---
+ audio/{Android.mk => Android.mk.disabled}    | 0
+ health/{Android.bp => Android.bp.disabled}   | 0
+ vibrator/{Android.bp => Android.bp.disabled} | 0
+ 3 files changed, 0 insertions(+), 0 deletions(-)
+ rename audio/{Android.mk => Android.mk.disabled} (100%)
+ rename health/{Android.bp => Android.bp.disabled} (100%)
+ rename vibrator/{Android.bp => Android.bp.disabled} (100%)
+
+diff --git a/audio/Android.mk b/audio/Android.mk.disabled
+similarity index 100%
+rename from audio/Android.mk
+rename to audio/Android.mk.disabled
+diff --git a/health/Android.bp b/health/Android.bp.disabled
+similarity index 100%
+rename from health/Android.bp
+rename to health/Android.bp.disabled
+diff --git a/vibrator/Android.bp b/vibrator/Android.bp.disabled
+similarity index 100%
+rename from vibrator/Android.bp
+rename to vibrator/Android.bp.disabled
+-- 
+2.56.0
+

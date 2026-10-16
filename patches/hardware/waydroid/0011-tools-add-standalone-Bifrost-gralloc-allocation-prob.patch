@@ -1,0 +1,124 @@
+From 1593695102ac2e5abc386c7d0e1da2c70f317974 Mon Sep 17 00:00:00 2001
+From: Dick Valentine <asetium@gmail.com>
+Date: Fri, 16 Oct 2026 22:05:23 +0200
+Subject: [PATCH 11/11] tools: add standalone Bifrost gralloc allocation probe
+
+---
+ bifrost_probe/Android.bp |  8 ++++
+ bifrost_probe/main.cpp   | 89 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 97 insertions(+)
+ create mode 100644 bifrost_probe/Android.bp
+ create mode 100644 bifrost_probe/main.cpp
+
+diff --git a/bifrost_probe/Android.bp b/bifrost_probe/Android.bp
+new file mode 100644
+index 0000000000000000000000000000000000000000..1bc9b312c5c98f7eb4a32fb57d39ff6adf1a6e82
+--- /dev/null
++++ b/bifrost_probe/Android.bp
+@@ -0,0 +1,8 @@
++cc_binary {
++    name: "bifrost_gralloc_probe",
++    srcs: ["main.cpp"],
++    shared_libs: [
++        "libui",
++        "libutils",
++    ],
++}
+diff --git a/bifrost_probe/main.cpp b/bifrost_probe/main.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..9d7823c7932123ec3135ba2c458852b05856abb5
+--- /dev/null
++++ b/bifrost_probe/main.cpp
+@@ -0,0 +1,89 @@
++#include <cstdio>
++#include <cstdint>
++#include <inttypes.h>
++#include <unistd.h>
++
++#include <hardware/gralloc.h>
++#include <ui/GraphicBuffer.h>
++#include <ui/GraphicBufferMapper.h>
++
++int main() {
++    constexpr uint64_t base =
++        GRALLOC_USAGE_HW_RENDER |
++        GRALLOC_USAGE_HW_TEXTURE |
++        GRALLOC_USAGE_HW_COMPOSER |
++        GRALLOC_USAGE_HW_FB;
++
++    struct Test {
++        const char* name;
++        uint64_t extra;
++    };
++
++    const Test tests[] = {
++        {"baseline",           0},
++        {"no_afbc_bit29",       1ULL << 29},
++        {"no_afbc_legacy",      (1ULL << 29) | (1ULL << 30)},
++        {"cpu_read",            GRALLOC_USAGE_SW_READ_OFTEN},
++    };
++
++    auto& mapper = android::GraphicBufferMapper::get();
++
++    for (const auto& test : tests) {
++        const uint64_t usage = base | test.extra;
++
++        printf("\n=== %s (usage=0x%016" PRIx64 ") ===\n",
++               test.name, usage);
++
++        android::sp<android::GraphicBuffer> buffer =
++            new android::GraphicBuffer(
++                3840, 2160,
++                static_cast<android::PixelFormat>(
++                    HAL_PIXEL_FORMAT_RGBA_8888),
++                1, usage, "BifrostGrallocProbe");
++
++        const int status = buffer->initCheck();
++
++        printf("allocation status=%d\n", status);
++
++        if (status != 0 || !buffer->handle)
++            continue;
++
++        uint32_t fourcc = 0;
++        uint64_t modifier = UINT64_MAX;
++
++        const int ef = mapper.getPixelFormatFourCC(
++            buffer->handle, &fourcc);
++        const int em = mapper.getPixelFormatModifier(
++            buffer->handle, &modifier);
++
++        printf("fourcc status=%d value=0x%08x\n", ef, fourcc);
++        printf("modifier status=%d value=0x%016" PRIx64 "\n",
++               em, modifier);
++
++        printf("numFds=%d numInts=%d stride=%u\n",
++               buffer->handle->numFds,
++               buffer->handle->numInts,
++               buffer->getStride());
++
++        for (int i = 0; i < buffer->handle->numFds; ++i) {
++            const int fd = buffer->handle->data[i];
++
++            char path[64];
++            char target[256] = {};
++
++            snprintf(path, sizeof(path),
++                     "/proc/self/fd/%d", fd);
++
++            const ssize_t n = readlink(
++                path, target, sizeof(target) - 1);
++
++            if (n >= 0)
++                target[n] = '\0';
++
++            printf("fd[%d]=%d target=%s\n",
++                   i, fd, n >= 0 ? target : "<unknown>");
++        }
++    }
++
++    return 0;
++}
+-- 
+2.56.0
+

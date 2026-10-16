@@ -1,0 +1,95 @@
+From 9005159f7894dcfdd83b6f41b02cbca11607c552 Mon Sep 17 00:00:00 2001
+From: Dick Valentine <asetium@gmail.com>
+Date: Fri, 16 Oct 2026 23:16:06 +0200
+Subject: [PATCH] experiment: override YouTube TV low-end mode on CM3588
+
+Preserve the tested YouTube TV 7.27.302 Cobalt bootstrap workaround.
+
+Scoped to the CM3588 device and YouTube TV package.
+Requires review when the APK or bootstrap format changes.
+
+This modifies application-private bootstrap data at process startup
+and is not intended as a generic Android framework change.
+---
+ core/java/android/app/ActivityThread.java | 58 +++++++++++++++++++++++
+ 1 file changed, 58 insertions(+)
+
+diff --git a/core/java/android/app/ActivityThread.java b/core/java/android/app/ActivityThread.java
+index 6777dbaad9b90f5eeb28b679bef2931840c236f5..acf92efdf3b661f9bcc44c4efd9541ed2a464cd7 100644
+--- a/core/java/android/app/ActivityThread.java
++++ b/core/java/android/app/ActivityThread.java
+@@ -329,6 +329,63 @@ public final class ActivityThread extends ClientTransactionHandler
+ 
+     /** @hide */
+     public static final String TAG = "ActivityThread";
++
++    /**
++     * CM3588 compatibility experiment for YouTube TV 7.27.302.
++     *
++     * This is intentionally restricted to the CM3588 device and YouTube's
++     * private bootstrap format validated during our Cobalt investigation.
++     *
++     * Revisit the offsets and guards before supporting a different APK.
++     */
++    private static void applyCm3588YoutubeLowEndOverride(ApplicationInfo appInfo) {
++        if (appInfo == null
++                || !"cm3588_atv".equals(Build.DEVICE)
++                || !"com.google.android.youtube.tv".equals(appInfo.packageName)
++                || appInfo.dataDir == null) {
++            return;
++        }
++
++        final File bootstrap = new File(
++                appInfo.dataDir, "files/cfg/bootstrap.data");
++
++        if (!bootstrap.isFile()) {
++            return;
++        }
++
++        try (java.io.RandomAccessFile file =
++                     new java.io.RandomAccessFile(bootstrap, "rw")) {
++
++            if (file.length() != 4096) {
++                Slog.w(TAG, "CM3588 YouTube bootstrap size mismatch; skipping");
++                return;
++            }
++
++            file.seek(0);
++            if ((file.readUnsignedByte() & 0x7f) != 1) {
++                Slog.w(TAG, "CM3588 YouTube bootstrap version mismatch; skipping");
++                return;
++            }
++
++            // Experiment 1073829097:
++            // DisableLowEndDeviceMode, long[339], bit 41.
++            // Little-endian byte offset 2717, bit mask 0x02.
++            file.seek(2717);
++            final int previous = file.readUnsignedByte();
++
++            if ((previous & 0x02) == 0) {
++                file.seek(2717);
++                file.writeByte(previous | 0x02);
++                file.getFD().sync();
++                Slog.i(TAG, "CM3588 YouTube low-end override applied");
++            } else {
++                Slog.i(TAG, "CM3588 YouTube low-end override already present");
++            }
++        } catch (IOException | SecurityException e) {
++            Slog.w(TAG, "CM3588 YouTube low-end override failed", e);
++        }
++    }
++
+     static final boolean localLOGV = false;
+     static final boolean DEBUG_MESSAGES = false;
+     /** @hide */
+@@ -7842,6 +7899,7 @@ public final class ActivityThread extends ClientTransactionHandler
+         initZipPathValidatorCallback();
+ 
+         mBoundApplication = data;
++        applyCm3588YoutubeLowEndOverride(data.appInfo);
+         mConfigurationController.setConfiguration(data.config);
+         mConfigurationController.setCompatConfiguration(data.config);
+         mConfiguration = mConfigurationController.getConfiguration();
+-- 
+2.56.0
+

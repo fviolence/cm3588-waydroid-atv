@@ -1,0 +1,3974 @@
+From 2793e357d214fc6981d096ce61f43566cd8b049a Mon Sep 17 00:00:00 2001
+From: Dick Valentine <asetium@gmail.com>
+Date: Mon, 12 Oct 2026 11:02:17 +0200
+Subject: [PATCH 02/11] interfaces: backport display headers for Android 16
+
+---
+ interfaces/display/include/Android.bp         |   5 +
+ .../display/1.0/BnHwWaydroidDisplay.h         |  75 +++
+ .../display/1.0/BpHwWaydroidDisplay.h         |  63 ++
+ .../waydroid/display/1.0/BsWaydroidDisplay.h  | 416 ++++++++++++
+ .../waydroid/display/1.0/IHwWaydroidDisplay.h |  23 +
+ .../waydroid/display/1.0/IWaydroidDisplay.h   | 266 ++++++++
+ .../display/1.1/BnHwWaydroidDisplay.h         |  70 +++
+ .../display/1.1/BpHwWaydroidDisplay.h         |  66 ++
+ .../waydroid/display/1.1/BsWaydroidDisplay.h  | 483 ++++++++++++++
+ .../waydroid/display/1.1/IHwWaydroidDisplay.h |  23 +
+ .../waydroid/display/1.1/IWaydroidDisplay.h   | 274 ++++++++
+ .../display/1.2/BnHwWaydroidDisplay.h         |  65 ++
+ .../display/1.2/BpHwWaydroidDisplay.h         |  68 ++
+ .../waydroid/display/1.2/BsWaydroidDisplay.h  | 519 +++++++++++++++
+ .../waydroid/display/1.2/IHwWaydroidDisplay.h |  23 +
+ .../waydroid/display/1.2/IWaydroidDisplay.h   | 280 +++++++++
+ .../display/1.3/BnHwWaydroidDisplay.h         |  74 +++
+ .../display/1.3/BpHwWaydroidDisplay.h         |  73 +++
+ .../waydroid/display/1.3/BsWaydroidDisplay.h  | 592 ++++++++++++++++++
+ .../waydroid/display/1.3/IHwWaydroidDisplay.h |  23 +
+ .../waydroid/display/1.3/IWaydroidDisplay.h   | 314 ++++++++++
+ 21 files changed, 3795 insertions(+)
+ create mode 100644 interfaces/display/include/Android.bp
+ create mode 100644 interfaces/display/include/vendor/waydroid/display/1.0/BnHwWaydroidDisplay.h
+ create mode 100644 interfaces/display/include/vendor/waydroid/display/1.0/BpHwWaydroidDisplay.h
+ create mode 100644 interfaces/display/include/vendor/waydroid/display/1.0/BsWaydroidDisplay.h
+ create mode 100644 interfaces/display/include/vendor/waydroid/display/1.0/IHwWaydroidDisplay.h
+ create mode 100644 interfaces/display/include/vendor/waydroid/display/1.0/IWaydroidDisplay.h
+ create mode 100644 interfaces/display/include/vendor/waydroid/display/1.1/BnHwWaydroidDisplay.h
+ create mode 100644 interfaces/display/include/vendor/waydroid/display/1.1/BpHwWaydroidDisplay.h
+ create mode 100644 interfaces/display/include/vendor/waydroid/display/1.1/BsWaydroidDisplay.h
+ create mode 100644 interfaces/display/include/vendor/waydroid/display/1.1/IHwWaydroidDisplay.h
+ create mode 100644 interfaces/display/include/vendor/waydroid/display/1.1/IWaydroidDisplay.h
+ create mode 100644 interfaces/display/include/vendor/waydroid/display/1.2/BnHwWaydroidDisplay.h
+ create mode 100644 interfaces/display/include/vendor/waydroid/display/1.2/BpHwWaydroidDisplay.h
+ create mode 100644 interfaces/display/include/vendor/waydroid/display/1.2/BsWaydroidDisplay.h
+ create mode 100644 interfaces/display/include/vendor/waydroid/display/1.2/IHwWaydroidDisplay.h
+ create mode 100644 interfaces/display/include/vendor/waydroid/display/1.2/IWaydroidDisplay.h
+ create mode 100644 interfaces/display/include/vendor/waydroid/display/1.3/BnHwWaydroidDisplay.h
+ create mode 100644 interfaces/display/include/vendor/waydroid/display/1.3/BpHwWaydroidDisplay.h
+ create mode 100644 interfaces/display/include/vendor/waydroid/display/1.3/BsWaydroidDisplay.h
+ create mode 100644 interfaces/display/include/vendor/waydroid/display/1.3/IHwWaydroidDisplay.h
+ create mode 100644 interfaces/display/include/vendor/waydroid/display/1.3/IWaydroidDisplay.h
+
+diff --git a/interfaces/display/include/Android.bp b/interfaces/display/include/Android.bp
+new file mode 100644
+index 0000000000000000000000000000000000000000..775e69d70f06a9da27aace370f463e393e6ff375
+--- /dev/null
++++ b/interfaces/display/include/Android.bp
+@@ -0,0 +1,5 @@
++cc_library_headers {
++    name: "vendor.waydroid.display-headers",
++    export_include_dirs: ["."],
++    vendor_available: true,
++}
+diff --git a/interfaces/display/include/vendor/waydroid/display/1.0/BnHwWaydroidDisplay.h b/interfaces/display/include/vendor/waydroid/display/1.0/BnHwWaydroidDisplay.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..be38c3f56d196ffffacf3dfeffd789ac4f5dfda2
+--- /dev/null
++++ b/interfaces/display/include/vendor/waydroid/display/1.0/BnHwWaydroidDisplay.h
+@@ -0,0 +1,75 @@
++#ifndef HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_0_BNHWWAYDROIDDISPLAY_H
++#define HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_0_BNHWWAYDROIDDISPLAY_H
++
++#include <vendor/waydroid/display/1.0/IHwWaydroidDisplay.h>
++
++namespace vendor {
++namespace waydroid {
++namespace display {
++namespace V1_0 {
++
++struct BnHwWaydroidDisplay : public ::android::hidl::base::V1_0::BnHwBase {
++    explicit BnHwWaydroidDisplay(const ::android::sp<IWaydroidDisplay> &_hidl_impl);
++    explicit BnHwWaydroidDisplay(const ::android::sp<IWaydroidDisplay> &_hidl_impl, const std::string& HidlInstrumentor_package, const std::string& HidlInstrumentor_interface);
++
++    virtual ~BnHwWaydroidDisplay();
++
++    ::android::status_t onTransact(
++            uint32_t _hidl_code,
++            const ::android::hardware::Parcel &_hidl_data,
++            ::android::hardware::Parcel *_hidl_reply,
++            uint32_t _hidl_flags = 0,
++            TransactCallback _hidl_cb = nullptr) override;
++
++
++    /**
++     * The pure class is what this class wraps.
++     */
++    typedef IWaydroidDisplay Pure;
++
++    /**
++     * Type tag for use in template logic that indicates this is a 'native' class.
++     */
++    typedef ::android::hardware::details::bnhw_tag _hidl_tag;
++
++    ::android::sp<IWaydroidDisplay> getImpl() { return _hidl_mImpl; }
++    // Methods from ::vendor::waydroid::display::V1_0::IWaydroidDisplay follow.
++    static ::android::status_t _hidl_setLayerName(
++            ::android::hidl::base::V1_0::BnHwBase* _hidl_this,
++            const ::android::hardware::Parcel &_hidl_data,
++            ::android::hardware::Parcel *_hidl_reply,
++            TransactCallback _hidl_cb);
++
++
++    static ::android::status_t _hidl_setLayerHandleInfo(
++            ::android::hidl::base::V1_0::BnHwBase* _hidl_this,
++            const ::android::hardware::Parcel &_hidl_data,
++            ::android::hardware::Parcel *_hidl_reply,
++            TransactCallback _hidl_cb);
++
++
++    static ::android::status_t _hidl_setTargetLayerHandleInfo(
++            ::android::hidl::base::V1_0::BnHwBase* _hidl_this,
++            const ::android::hardware::Parcel &_hidl_data,
++            ::android::hardware::Parcel *_hidl_reply,
++            TransactCallback _hidl_cb);
++
++
++
++private:
++    // Methods from ::vendor::waydroid::display::V1_0::IWaydroidDisplay follow.
++
++    // Methods from ::android::hidl::base::V1_0::IBase follow.
++    ::android::hardware::Return<void> ping();
++    using getDebugInfo_cb = ::android::hidl::base::V1_0::IBase::getDebugInfo_cb;
++    ::android::hardware::Return<void> getDebugInfo(getDebugInfo_cb _hidl_cb);
++
++    ::android::sp<IWaydroidDisplay> _hidl_mImpl;
++};
++
++}  // namespace V1_0
++}  // namespace display
++}  // namespace waydroid
++}  // namespace vendor
++
++#endif  // HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_0_BNHWWAYDROIDDISPLAY_H
+diff --git a/interfaces/display/include/vendor/waydroid/display/1.0/BpHwWaydroidDisplay.h b/interfaces/display/include/vendor/waydroid/display/1.0/BpHwWaydroidDisplay.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..7797d0a4ce14e58ea7369eaa16f47bc8d597e03f
+--- /dev/null
++++ b/interfaces/display/include/vendor/waydroid/display/1.0/BpHwWaydroidDisplay.h
+@@ -0,0 +1,63 @@
++#ifndef HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_0_BPHWWAYDROIDDISPLAY_H
++#define HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_0_BPHWWAYDROIDDISPLAY_H
++
++#include <hidl/HidlTransportSupport.h>
++
++#include <vendor/waydroid/display/1.0/IHwWaydroidDisplay.h>
++
++#include <mutex>
++namespace vendor {
++namespace waydroid {
++namespace display {
++namespace V1_0 {
++
++struct BpHwWaydroidDisplay : public ::android::hardware::BpInterface<IWaydroidDisplay>, public ::android::hardware::details::HidlInstrumentor {
++    explicit BpHwWaydroidDisplay(const ::android::sp<::android::hardware::IBinder> &_hidl_impl);
++
++    /**
++     * The pure class is what this class wraps.
++     */
++    typedef IWaydroidDisplay Pure;
++
++    /**
++     * Type tag for use in template logic that indicates this is a 'proxy' class.
++     */
++    typedef ::android::hardware::details::bphw_tag _hidl_tag;
++
++    virtual bool isRemote() const override { return true; }
++
++    void onLastStrongRef(const void* id) override;
++
++    // Methods from ::vendor::waydroid::display::V1_0::IWaydroidDisplay follow.
++    static ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error>  _hidl_setLayerName(::android::hardware::IInterface* _hidl_this, ::android::hardware::details::HidlInstrumentor *_hidl_this_instrumentor, uint32_t layer, const ::android::hardware::hidl_string& name);
++    static ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error>  _hidl_setLayerHandleInfo(::android::hardware::IInterface* _hidl_this, ::android::hardware::details::HidlInstrumentor *_hidl_this_instrumentor, uint32_t layer, uint32_t format, uint32_t stride);
++    static ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error>  _hidl_setTargetLayerHandleInfo(::android::hardware::IInterface* _hidl_this, ::android::hardware::details::HidlInstrumentor *_hidl_this_instrumentor, uint32_t format, uint32_t stride);
++
++    // Methods from ::vendor::waydroid::display::V1_0::IWaydroidDisplay follow.
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerName(uint32_t layer, const ::android::hardware::hidl_string& name) override;
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerHandleInfo(uint32_t layer, uint32_t format, uint32_t stride) override;
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerHandleInfo(uint32_t format, uint32_t stride) override;
++
++    // Methods from ::android::hidl::base::V1_0::IBase follow.
++    ::android::hardware::Return<void> interfaceChain(interfaceChain_cb _hidl_cb) override;
++    ::android::hardware::Return<void> debug(const ::android::hardware::hidl_handle& fd, const ::android::hardware::hidl_vec<::android::hardware::hidl_string>& options) override;
++    ::android::hardware::Return<void> interfaceDescriptor(interfaceDescriptor_cb _hidl_cb) override;
++    ::android::hardware::Return<void> getHashChain(getHashChain_cb _hidl_cb) override;
++    ::android::hardware::Return<void> setHALInstrumentation() override;
++    ::android::hardware::Return<bool> linkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient, uint64_t cookie) override;
++    ::android::hardware::Return<void> ping() override;
++    ::android::hardware::Return<void> getDebugInfo(getDebugInfo_cb _hidl_cb) override;
++    ::android::hardware::Return<void> notifySyspropsChanged() override;
++    ::android::hardware::Return<bool> unlinkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient) override;
++
++private:
++    std::mutex _hidl_mMutex;
++    std::vector<::android::sp<::android::hardware::hidl_binder_death_recipient>> _hidl_mDeathRecipients;
++};
++
++}  // namespace V1_0
++}  // namespace display
++}  // namespace waydroid
++}  // namespace vendor
++
++#endif  // HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_0_BPHWWAYDROIDDISPLAY_H
+diff --git a/interfaces/display/include/vendor/waydroid/display/1.0/BsWaydroidDisplay.h b/interfaces/display/include/vendor/waydroid/display/1.0/BsWaydroidDisplay.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..e93628d23e2bf2490ea375baadb2047de3900f28
+--- /dev/null
++++ b/interfaces/display/include/vendor/waydroid/display/1.0/BsWaydroidDisplay.h
+@@ -0,0 +1,416 @@
++#ifndef HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_0_BSWAYDROIDDISPLAY_H
++#define HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_0_BSWAYDROIDDISPLAY_H
++
++#include <android-base/macros.h>
++#include <cutils/trace.h>
++#include <future>
++#include <vendor/waydroid/display/1.0/IWaydroidDisplay.h>
++
++#include <hidl/HidlPassthroughSupport.h>
++#include <hidl/TaskRunner.h>
++namespace vendor {
++namespace waydroid {
++namespace display {
++namespace V1_0 {
++
++struct BsWaydroidDisplay : IWaydroidDisplay, ::android::hardware::details::HidlInstrumentor {
++    explicit BsWaydroidDisplay(const ::android::sp<IWaydroidDisplay> impl);
++
++    /**
++     * The pure class is what this class wraps.
++     */
++    typedef IWaydroidDisplay Pure;
++
++    typedef ::android::hardware::details::bs_tag _hidl_tag;
++
++    // Methods from ::vendor::waydroid::display::V1_0::IWaydroidDisplay follow.
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerName(uint32_t layer, const ::android::hardware::hidl_string& name) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::setLayerName::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&layer);
++            _hidl_args.push_back((void *)&name);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setLayerName", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->setLayerName(layer, name);
++
++        ::android::hardware::graphics::composer::V2_1::Error _hidl_out_error = _hidl_return;
++        (void) _hidl_out_error;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_error);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setLayerName", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerHandleInfo(uint32_t layer, uint32_t format, uint32_t stride) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::setLayerHandleInfo::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&layer);
++            _hidl_args.push_back((void *)&format);
++            _hidl_args.push_back((void *)&stride);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setLayerHandleInfo", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->setLayerHandleInfo(layer, format, stride);
++
++        ::android::hardware::graphics::composer::V2_1::Error _hidl_out_error = _hidl_return;
++        (void) _hidl_out_error;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_error);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setLayerHandleInfo", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerHandleInfo(uint32_t format, uint32_t stride) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::setTargetLayerHandleInfo::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&format);
++            _hidl_args.push_back((void *)&stride);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setTargetLayerHandleInfo", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->setTargetLayerHandleInfo(format, stride);
++
++        ::android::hardware::graphics::composer::V2_1::Error _hidl_out_error = _hidl_return;
++        (void) _hidl_out_error;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_error);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setTargetLayerHandleInfo", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++
++    // Methods from ::android::hidl::base::V1_0::IBase follow.
++    ::android::hardware::Return<void> interfaceChain(interfaceChain_cb _hidl_cb) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::interfaceChain::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "interfaceChain", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->interfaceChain([&](const auto &_hidl_out_descriptors) {
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                _hidl_args.push_back((void *)&_hidl_out_descriptors);
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "interfaceChain", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++            _hidl_cb(_hidl_out_descriptors);
++        });
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> debug(const ::android::hardware::hidl_handle& fd, const ::android::hardware::hidl_vec<::android::hardware::hidl_string>& options) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::debug::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&fd);
++            _hidl_args.push_back((void *)&options);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "debug", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->debug(fd, options);
++
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "debug", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> interfaceDescriptor(interfaceDescriptor_cb _hidl_cb) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::interfaceDescriptor::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "interfaceDescriptor", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->interfaceDescriptor([&](const auto &_hidl_out_descriptor) {
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                _hidl_args.push_back((void *)&_hidl_out_descriptor);
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "interfaceDescriptor", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++            _hidl_cb(_hidl_out_descriptor);
++        });
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> getHashChain(getHashChain_cb _hidl_cb) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::getHashChain::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "getHashChain", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->getHashChain([&](const auto &_hidl_out_hashchain) {
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                _hidl_args.push_back((void *)&_hidl_out_hashchain);
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "getHashChain", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++            _hidl_cb(_hidl_out_hashchain);
++        });
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> setHALInstrumentation() override {
++        configureInstrumentation();
++        return ::android::hardware::Void();
++    }
++
++    ::android::hardware::Return<bool> linkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient, uint64_t cookie) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::linkToDeath::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&recipient);
++            _hidl_args.push_back((void *)&cookie);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "linkToDeath", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->linkToDeath(recipient, cookie);
++
++        bool _hidl_out_success = _hidl_return;
++        (void) _hidl_out_success;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_success);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "linkToDeath", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> ping() override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::ping::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "ping", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->ping();
++
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "ping", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> getDebugInfo(getDebugInfo_cb _hidl_cb) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::getDebugInfo::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "getDebugInfo", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->getDebugInfo([&](const auto &_hidl_out_info) {
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                _hidl_args.push_back((void *)&_hidl_out_info);
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "getDebugInfo", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++            _hidl_cb(_hidl_out_info);
++        });
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> notifySyspropsChanged() override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::notifySyspropsChanged::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "notifySyspropsChanged", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = addOnewayTask([mImpl = this->mImpl
++        #ifdef __ANDROID_DEBUGGABLE__
++        , mEnableInstrumentation = this->mEnableInstrumentation, mInstrumentationCallbacks = this->mInstrumentationCallbacks
++        #endif // __ANDROID_DEBUGGABLE__
++        ] {
++            mImpl->notifySyspropsChanged();
++
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "notifySyspropsChanged", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++        });
++        return _hidl_return;
++    }
++    ::android::hardware::Return<bool> unlinkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::unlinkToDeath::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&recipient);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "unlinkToDeath", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->unlinkToDeath(recipient);
++
++        bool _hidl_out_success = _hidl_return;
++        (void) _hidl_out_success;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_success);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "unlinkToDeath", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++
++private:
++    const ::android::sp<IWaydroidDisplay> mImpl;
++    ::android::hardware::details::TaskRunner mOnewayQueue;
++
++    ::android::hardware::Return<void> addOnewayTask(std::function<void(void)>);
++
++};
++
++}  // namespace V1_0
++}  // namespace display
++}  // namespace waydroid
++}  // namespace vendor
++
++#endif  // HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_0_BSWAYDROIDDISPLAY_H
+diff --git a/interfaces/display/include/vendor/waydroid/display/1.0/IHwWaydroidDisplay.h b/interfaces/display/include/vendor/waydroid/display/1.0/IHwWaydroidDisplay.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..f2734068c0bc34b6d1c185cc87170471c46ac23a
+--- /dev/null
++++ b/interfaces/display/include/vendor/waydroid/display/1.0/IHwWaydroidDisplay.h
+@@ -0,0 +1,23 @@
++#ifndef HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_0_IHWWAYDROIDDISPLAY_H
++#define HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_0_IHWWAYDROIDDISPLAY_H
++
++#include <vendor/waydroid/display/1.0/IWaydroidDisplay.h>
++
++#include <android/hardware/graphics/composer/2.1/hwtypes.h>
++#include <android/hidl/base/1.0/BnHwBase.h>
++#include <android/hidl/base/1.0/BpHwBase.h>
++
++#include <hidl/Status.h>
++#include <hwbinder/IBinder.h>
++#include <hwbinder/Parcel.h>
++
++namespace vendor {
++namespace waydroid {
++namespace display {
++namespace V1_0 {
++}  // namespace V1_0
++}  // namespace display
++}  // namespace waydroid
++}  // namespace vendor
++
++#endif  // HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_0_IHWWAYDROIDDISPLAY_H
+diff --git a/interfaces/display/include/vendor/waydroid/display/1.0/IWaydroidDisplay.h b/interfaces/display/include/vendor/waydroid/display/1.0/IWaydroidDisplay.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..e958b8d0bb57712e1633c225592bf022bf068a7c
+--- /dev/null
++++ b/interfaces/display/include/vendor/waydroid/display/1.0/IWaydroidDisplay.h
+@@ -0,0 +1,266 @@
++#ifndef HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_0_IWAYDROIDDISPLAY_H
++#define HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_0_IWAYDROIDDISPLAY_H
++
++#include <android/hardware/graphics/composer/2.1/types.h>
++#include <android/hidl/base/1.0/IBase.h>
++
++#include <android/hidl/manager/1.0/IServiceNotification.h>
++
++#include <hidl/HidlSupport.h>
++#include <hidl/MQDescriptor.h>
++#include <hidl/Status.h>
++#include <utils/NativeHandle.h>
++#include <utils/misc.h>
++
++namespace vendor {
++namespace waydroid {
++namespace display {
++namespace V1_0 {
++
++struct IWaydroidDisplay : public ::android::hidl::base::V1_0::IBase {
++    /**
++     * Type tag for use in template logic that indicates this is a 'pure' class.
++     */
++    typedef ::android::hardware::details::i_tag _hidl_tag;
++
++    /**
++     * Fully qualified interface name: "vendor.waydroid.display@1.0::IWaydroidDisplay"
++     */
++    static const char* descriptor;
++
++    /**
++     * Returns whether this object's implementation is outside of the current process.
++     */
++    virtual bool isRemote() const override { return false; }
++
++    virtual ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerName(uint32_t layer, const ::android::hardware::hidl_string& name) = 0;
++
++    virtual ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerHandleInfo(uint32_t layer, uint32_t format, uint32_t stride) = 0;
++
++    virtual ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerHandleInfo(uint32_t format, uint32_t stride) = 0;
++
++    /**
++     * Return callback for interfaceChain
++     */
++    using interfaceChain_cb = std::function<void(const ::android::hardware::hidl_vec<::android::hardware::hidl_string>& descriptors)>;
++    /*
++     * Provides run-time type information for this object.
++     * For example, for the following interface definition:
++     *     package android.hardware.foo@1.0;
++     *     interface IParent {};
++     *     interface IChild extends IParent {};
++     * Calling interfaceChain on an IChild object must yield the following:
++     *     ["android.hardware.foo@1.0::IChild",
++     *      "android.hardware.foo@1.0::IParent"
++     *      "android.hidl.base@1.0::IBase"]
++     *
++     * @return descriptors a vector of descriptors of the run-time type of the
++     *         object.
++     */
++    virtual ::android::hardware::Return<void> interfaceChain(interfaceChain_cb _hidl_cb) override;
++
++    /*
++     * Emit diagnostic information to the given file.
++     *
++     * Optionally overriden.
++     *
++     * @param fd      File descriptor to dump data to.
++     *                Must only be used for the duration of this call.
++     * @param options Arguments for debugging.
++     *                Must support empty for default debug information.
++     */
++    virtual ::android::hardware::Return<void> debug(const ::android::hardware::hidl_handle& fd, const ::android::hardware::hidl_vec<::android::hardware::hidl_string>& options) override;
++
++    /**
++     * Return callback for interfaceDescriptor
++     */
++    using interfaceDescriptor_cb = std::function<void(const ::android::hardware::hidl_string& descriptor)>;
++    /*
++     * Provides run-time type information for this object.
++     * For example, for the following interface definition:
++     *     package android.hardware.foo@1.0;
++     *     interface IParent {};
++     *     interface IChild extends IParent {};
++     * Calling interfaceDescriptor on an IChild object must yield
++     *     "android.hardware.foo@1.0::IChild"
++     *
++     * @return descriptor a descriptor of the run-time type of the
++     *         object (the first element of the vector returned by
++     *         interfaceChain())
++     */
++    virtual ::android::hardware::Return<void> interfaceDescriptor(interfaceDescriptor_cb _hidl_cb) override;
++
++    /**
++     * Return callback for getHashChain
++     */
++    using getHashChain_cb = std::function<void(const ::android::hardware::hidl_vec<::android::hardware::hidl_array<uint8_t, 32>>& hashchain)>;
++    /*
++     * Returns hashes of the source HAL files that define the interfaces of the
++     * runtime type information on the object.
++     * For example, for the following interface definition:
++     *     package android.hardware.foo@1.0;
++     *     interface IParent {};
++     *     interface IChild extends IParent {};
++     * Calling interfaceChain on an IChild object must yield the following:
++     *     [(hash of IChild.hal),
++     *      (hash of IParent.hal)
++     *      (hash of IBase.hal)].
++     *
++     * SHA-256 is used as the hashing algorithm. Each hash has 32 bytes
++     * according to SHA-256 standard.
++     *
++     * @return hashchain a vector of SHA-1 digests
++     */
++    virtual ::android::hardware::Return<void> getHashChain(getHashChain_cb _hidl_cb) override;
++
++    /*
++     * This method trigger the interface to enable/disable instrumentation based
++     * on system property hal.instrumentation.enable.
++     */
++    virtual ::android::hardware::Return<void> setHALInstrumentation() override;
++
++    /*
++     * Registers a death recipient, to be called when the process hosting this
++     * interface dies.
++     *
++     * @param recipient a hidl_death_recipient callback object
++     * @param cookie a cookie that must be returned with the callback
++     * @return success whether the death recipient was registered successfully.
++     */
++    virtual ::android::hardware::Return<bool> linkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient, uint64_t cookie) override;
++
++    /*
++     * Provides way to determine if interface is running without requesting
++     * any functionality.
++     */
++    virtual ::android::hardware::Return<void> ping() override;
++
++    /**
++     * Return callback for getDebugInfo
++     */
++    using getDebugInfo_cb = std::function<void(const ::android::hidl::base::V1_0::DebugInfo& info)>;
++    /*
++     * Get debug information on references on this interface.
++     * @return info debugging information. See comments of DebugInfo.
++     */
++    virtual ::android::hardware::Return<void> getDebugInfo(getDebugInfo_cb _hidl_cb) override;
++
++    /*
++     * This method notifies the interface that one or more system properties
++     * have changed. The default implementation calls
++     * (C++)  report_sysprop_change() in libcutils or
++     * (Java) android.os.SystemProperties.reportSyspropChanged,
++     * which in turn calls a set of registered callbacks (eg to update trace
++     * tags).
++     */
++    virtual ::android::hardware::Return<void> notifySyspropsChanged() override;
++
++    /*
++     * Unregisters the registered death recipient. If this service was registered
++     * multiple times with the same exact death recipient, this unlinks the most
++     * recently registered one.
++     *
++     * @param recipient a previously registered hidl_death_recipient callback
++     * @return success whether the death recipient was unregistered successfully.
++     */
++    virtual ::android::hardware::Return<bool> unlinkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient) override;
++
++    // cast static functions
++    /**
++     * This performs a checked cast based on what the underlying implementation actually is.
++     */
++    static ::android::hardware::Return<::android::sp<::vendor::waydroid::display::V1_0::IWaydroidDisplay>> castFrom(const ::android::sp<::vendor::waydroid::display::V1_0::IWaydroidDisplay>& parent, bool emitError = false);
++    /**
++     * This performs a checked cast based on what the underlying implementation actually is.
++     */
++    static ::android::hardware::Return<::android::sp<::vendor::waydroid::display::V1_0::IWaydroidDisplay>> castFrom(const ::android::sp<::android::hidl::base::V1_0::IBase>& parent, bool emitError = false);
++
++    // helper methods for interactions with the hwservicemanager
++    /**
++     * This gets the service of this type with the specified instance name. If the
++     * service is currently not available or not in the VINTF manifest on a Trebilized
++     * device, this will return nullptr. This is useful when you don't want to block
++     * during device boot. If getStub is true, this will try to return an unwrapped
++     * passthrough implementation in the same process. This is useful when getting an
++     * implementation from the same partition/compilation group.
++     *
++     * In general, prefer getService(std::string,bool)
++     */
++    static ::android::sp<IWaydroidDisplay> tryGetService(const std::string &serviceName="default", bool getStub=false);
++    /**
++     * Deprecated. See tryGetService(std::string, bool)
++     */
++    static ::android::sp<IWaydroidDisplay> tryGetService(const char serviceName[], bool getStub=false)  { std::string str(serviceName ? serviceName : "");      return tryGetService(str, getStub); }
++    /**
++     * Deprecated. See tryGetService(std::string, bool)
++     */
++    static ::android::sp<IWaydroidDisplay> tryGetService(const ::android::hardware::hidl_string& serviceName, bool getStub=false)  { std::string str(serviceName.c_str());      return tryGetService(str, getStub); }
++    /**
++     * Calls tryGetService("default", bool). This is the recommended instance name for singleton services.
++     */
++    static ::android::sp<IWaydroidDisplay> tryGetService(bool getStub) { return tryGetService("default", getStub); }
++    /**
++     * This gets the service of this type with the specified instance name. If the
++     * service is not in the VINTF manifest on a Trebilized device, this will return
++     * nullptr. If the service is not available, this will wait for the service to
++     * become available. If the service is a lazy service, this will start the service
++     * and return when it becomes available. If getStub is true, this will try to
++     * return an unwrapped passthrough implementation in the same process. This is
++     * useful when getting an implementation from the same partition/compilation group.
++     */
++    static ::android::sp<IWaydroidDisplay> getService(const std::string &serviceName="default", bool getStub=false);
++    /**
++     * Deprecated. See getService(std::string, bool)
++     */
++    static ::android::sp<IWaydroidDisplay> getService(const char serviceName[], bool getStub=false)  { std::string str(serviceName ? serviceName : "");      return getService(str, getStub); }
++    /**
++     * Deprecated. See getService(std::string, bool)
++     */
++    static ::android::sp<IWaydroidDisplay> getService(const ::android::hardware::hidl_string& serviceName, bool getStub=false)  { std::string str(serviceName.c_str());      return getService(str, getStub); }
++    /**
++     * Calls getService("default", bool). This is the recommended instance name for singleton services.
++     */
++    static ::android::sp<IWaydroidDisplay> getService(bool getStub) { return getService("default", getStub); }
++    /**
++     * Registers a service with the service manager. For Trebilized devices, the service
++     * must also be in the VINTF manifest.
++     */
++    __attribute__ ((warn_unused_result))::android::status_t registerAsService(const std::string &serviceName="default");
++    /**
++     * Registers for notifications for when a service is registered.
++     */
++    static bool registerForNotifications(
++            const std::string &serviceName,
++            const ::android::sp<::android::hidl::manager::V1_0::IServiceNotification> &notification);
++};
++
++//
++// type declarations for package
++//
++
++static inline std::string toString(const ::android::sp<::vendor::waydroid::display::V1_0::IWaydroidDisplay>& o);
++
++//
++// type header definitions for package
++//
++
++static inline std::string toString(const ::android::sp<::vendor::waydroid::display::V1_0::IWaydroidDisplay>& o) {
++    std::string os = "[class or subclass of ";
++    os += ::vendor::waydroid::display::V1_0::IWaydroidDisplay::descriptor;
++    os += "]";
++    os += o->isRemote() ? "@remote" : "@local";
++    return os;
++}
++
++
++}  // namespace V1_0
++}  // namespace display
++}  // namespace waydroid
++}  // namespace vendor
++
++//
++// global type declarations for package
++//
++
++
++#endif  // HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_0_IWAYDROIDDISPLAY_H
+diff --git a/interfaces/display/include/vendor/waydroid/display/1.1/BnHwWaydroidDisplay.h b/interfaces/display/include/vendor/waydroid/display/1.1/BnHwWaydroidDisplay.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..ce7654e4f269204208a6de6cebd6043f65e8a915
+--- /dev/null
++++ b/interfaces/display/include/vendor/waydroid/display/1.1/BnHwWaydroidDisplay.h
+@@ -0,0 +1,70 @@
++#ifndef HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_1_BNHWWAYDROIDDISPLAY_H
++#define HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_1_BNHWWAYDROIDDISPLAY_H
++
++#include <vendor/waydroid/display/1.1/IHwWaydroidDisplay.h>
++
++namespace vendor {
++namespace waydroid {
++namespace display {
++namespace V1_1 {
++
++struct BnHwWaydroidDisplay : public ::android::hidl::base::V1_0::BnHwBase {
++    explicit BnHwWaydroidDisplay(const ::android::sp<IWaydroidDisplay> &_hidl_impl);
++    explicit BnHwWaydroidDisplay(const ::android::sp<IWaydroidDisplay> &_hidl_impl, const std::string& HidlInstrumentor_package, const std::string& HidlInstrumentor_interface);
++
++    virtual ~BnHwWaydroidDisplay();
++
++    ::android::status_t onTransact(
++            uint32_t _hidl_code,
++            const ::android::hardware::Parcel &_hidl_data,
++            ::android::hardware::Parcel *_hidl_reply,
++            uint32_t _hidl_flags = 0,
++            TransactCallback _hidl_cb = nullptr) override;
++
++
++    /**
++     * The pure class is what this class wraps.
++     */
++    typedef IWaydroidDisplay Pure;
++
++    /**
++     * Type tag for use in template logic that indicates this is a 'native' class.
++     */
++    typedef ::android::hardware::details::bnhw_tag _hidl_tag;
++
++    ::android::sp<IWaydroidDisplay> getImpl() { return _hidl_mImpl; }
++    // Methods from ::vendor::waydroid::display::V1_1::IWaydroidDisplay follow.
++    static ::android::status_t _hidl_setLayerSize(
++            ::android::hidl::base::V1_0::BnHwBase* _hidl_this,
++            const ::android::hardware::Parcel &_hidl_data,
++            ::android::hardware::Parcel *_hidl_reply,
++            TransactCallback _hidl_cb);
++
++
++    static ::android::status_t _hidl_setTargetLayerSize(
++            ::android::hidl::base::V1_0::BnHwBase* _hidl_this,
++            const ::android::hardware::Parcel &_hidl_data,
++            ::android::hardware::Parcel *_hidl_reply,
++            TransactCallback _hidl_cb);
++
++
++
++private:
++    // Methods from ::vendor::waydroid::display::V1_0::IWaydroidDisplay follow.
++
++    // Methods from ::vendor::waydroid::display::V1_1::IWaydroidDisplay follow.
++
++    // Methods from ::android::hidl::base::V1_0::IBase follow.
++    ::android::hardware::Return<void> ping();
++    using getDebugInfo_cb = ::android::hidl::base::V1_0::IBase::getDebugInfo_cb;
++    ::android::hardware::Return<void> getDebugInfo(getDebugInfo_cb _hidl_cb);
++
++    ::android::sp<IWaydroidDisplay> _hidl_mImpl;
++};
++
++}  // namespace V1_1
++}  // namespace display
++}  // namespace waydroid
++}  // namespace vendor
++
++#endif  // HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_1_BNHWWAYDROIDDISPLAY_H
+diff --git a/interfaces/display/include/vendor/waydroid/display/1.1/BpHwWaydroidDisplay.h b/interfaces/display/include/vendor/waydroid/display/1.1/BpHwWaydroidDisplay.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..4998b2a70113ca4ac78ab1b0c583ff5ddef0f9ce
+--- /dev/null
++++ b/interfaces/display/include/vendor/waydroid/display/1.1/BpHwWaydroidDisplay.h
+@@ -0,0 +1,66 @@
++#ifndef HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_1_BPHWWAYDROIDDISPLAY_H
++#define HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_1_BPHWWAYDROIDDISPLAY_H
++
++#include <hidl/HidlTransportSupport.h>
++
++#include <vendor/waydroid/display/1.1/IHwWaydroidDisplay.h>
++
++#include <mutex>
++namespace vendor {
++namespace waydroid {
++namespace display {
++namespace V1_1 {
++
++struct BpHwWaydroidDisplay : public ::android::hardware::BpInterface<IWaydroidDisplay>, public ::android::hardware::details::HidlInstrumentor {
++    explicit BpHwWaydroidDisplay(const ::android::sp<::android::hardware::IBinder> &_hidl_impl);
++
++    /**
++     * The pure class is what this class wraps.
++     */
++    typedef IWaydroidDisplay Pure;
++
++    /**
++     * Type tag for use in template logic that indicates this is a 'proxy' class.
++     */
++    typedef ::android::hardware::details::bphw_tag _hidl_tag;
++
++    virtual bool isRemote() const override { return true; }
++
++    void onLastStrongRef(const void* id) override;
++
++    // Methods from ::vendor::waydroid::display::V1_1::IWaydroidDisplay follow.
++    static ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error>  _hidl_setLayerSize(::android::hardware::IInterface* _hidl_this, ::android::hardware::details::HidlInstrumentor *_hidl_this_instrumentor, uint32_t layer, uint32_t width, uint32_t height);
++    static ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error>  _hidl_setTargetLayerSize(::android::hardware::IInterface* _hidl_this, ::android::hardware::details::HidlInstrumentor *_hidl_this_instrumentor, uint32_t width, uint32_t height);
++
++    // Methods from ::vendor::waydroid::display::V1_0::IWaydroidDisplay follow.
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerName(uint32_t layer, const ::android::hardware::hidl_string& name) override;
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerHandleInfo(uint32_t layer, uint32_t format, uint32_t stride) override;
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerHandleInfo(uint32_t format, uint32_t stride) override;
++
++    // Methods from ::vendor::waydroid::display::V1_1::IWaydroidDisplay follow.
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerSize(uint32_t layer, uint32_t width, uint32_t height) override;
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerSize(uint32_t width, uint32_t height) override;
++
++    // Methods from ::android::hidl::base::V1_0::IBase follow.
++    ::android::hardware::Return<void> interfaceChain(interfaceChain_cb _hidl_cb) override;
++    ::android::hardware::Return<void> debug(const ::android::hardware::hidl_handle& fd, const ::android::hardware::hidl_vec<::android::hardware::hidl_string>& options) override;
++    ::android::hardware::Return<void> interfaceDescriptor(interfaceDescriptor_cb _hidl_cb) override;
++    ::android::hardware::Return<void> getHashChain(getHashChain_cb _hidl_cb) override;
++    ::android::hardware::Return<void> setHALInstrumentation() override;
++    ::android::hardware::Return<bool> linkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient, uint64_t cookie) override;
++    ::android::hardware::Return<void> ping() override;
++    ::android::hardware::Return<void> getDebugInfo(getDebugInfo_cb _hidl_cb) override;
++    ::android::hardware::Return<void> notifySyspropsChanged() override;
++    ::android::hardware::Return<bool> unlinkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient) override;
++
++private:
++    std::mutex _hidl_mMutex;
++    std::vector<::android::sp<::android::hardware::hidl_binder_death_recipient>> _hidl_mDeathRecipients;
++};
++
++}  // namespace V1_1
++}  // namespace display
++}  // namespace waydroid
++}  // namespace vendor
++
++#endif  // HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_1_BPHWWAYDROIDDISPLAY_H
+diff --git a/interfaces/display/include/vendor/waydroid/display/1.1/BsWaydroidDisplay.h b/interfaces/display/include/vendor/waydroid/display/1.1/BsWaydroidDisplay.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..975c6e6d95bfebe8373f5eec76fd78b9be27ab5f
+--- /dev/null
++++ b/interfaces/display/include/vendor/waydroid/display/1.1/BsWaydroidDisplay.h
+@@ -0,0 +1,483 @@
++#ifndef HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_1_BSWAYDROIDDISPLAY_H
++#define HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_1_BSWAYDROIDDISPLAY_H
++
++#include <android-base/macros.h>
++#include <cutils/trace.h>
++#include <future>
++#include <vendor/waydroid/display/1.1/IWaydroidDisplay.h>
++
++#include <hidl/HidlPassthroughSupport.h>
++#include <hidl/TaskRunner.h>
++namespace vendor {
++namespace waydroid {
++namespace display {
++namespace V1_1 {
++
++struct BsWaydroidDisplay : IWaydroidDisplay, ::android::hardware::details::HidlInstrumentor {
++    explicit BsWaydroidDisplay(const ::android::sp<IWaydroidDisplay> impl);
++
++    /**
++     * The pure class is what this class wraps.
++     */
++    typedef IWaydroidDisplay Pure;
++
++    typedef ::android::hardware::details::bs_tag _hidl_tag;
++
++    // Methods from ::vendor::waydroid::display::V1_0::IWaydroidDisplay follow.
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerName(uint32_t layer, const ::android::hardware::hidl_string& name) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::setLayerName::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&layer);
++            _hidl_args.push_back((void *)&name);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setLayerName", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->setLayerName(layer, name);
++
++        ::android::hardware::graphics::composer::V2_1::Error _hidl_out_error = _hidl_return;
++        (void) _hidl_out_error;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_error);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setLayerName", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerHandleInfo(uint32_t layer, uint32_t format, uint32_t stride) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::setLayerHandleInfo::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&layer);
++            _hidl_args.push_back((void *)&format);
++            _hidl_args.push_back((void *)&stride);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setLayerHandleInfo", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->setLayerHandleInfo(layer, format, stride);
++
++        ::android::hardware::graphics::composer::V2_1::Error _hidl_out_error = _hidl_return;
++        (void) _hidl_out_error;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_error);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setLayerHandleInfo", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerHandleInfo(uint32_t format, uint32_t stride) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::setTargetLayerHandleInfo::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&format);
++            _hidl_args.push_back((void *)&stride);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setTargetLayerHandleInfo", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->setTargetLayerHandleInfo(format, stride);
++
++        ::android::hardware::graphics::composer::V2_1::Error _hidl_out_error = _hidl_return;
++        (void) _hidl_out_error;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_error);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setTargetLayerHandleInfo", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++
++    // Methods from ::vendor::waydroid::display::V1_1::IWaydroidDisplay follow.
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerSize(uint32_t layer, uint32_t width, uint32_t height) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::setLayerSize::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&layer);
++            _hidl_args.push_back((void *)&width);
++            _hidl_args.push_back((void *)&height);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.1", "IWaydroidDisplay", "setLayerSize", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->setLayerSize(layer, width, height);
++
++        ::android::hardware::graphics::composer::V2_1::Error _hidl_out_error = _hidl_return;
++        (void) _hidl_out_error;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_error);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.1", "IWaydroidDisplay", "setLayerSize", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerSize(uint32_t width, uint32_t height) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::setTargetLayerSize::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&width);
++            _hidl_args.push_back((void *)&height);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.1", "IWaydroidDisplay", "setTargetLayerSize", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->setTargetLayerSize(width, height);
++
++        ::android::hardware::graphics::composer::V2_1::Error _hidl_out_error = _hidl_return;
++        (void) _hidl_out_error;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_error);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.1", "IWaydroidDisplay", "setTargetLayerSize", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++
++    // Methods from ::android::hidl::base::V1_0::IBase follow.
++    ::android::hardware::Return<void> interfaceChain(interfaceChain_cb _hidl_cb) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::interfaceChain::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "interfaceChain", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->interfaceChain([&](const auto &_hidl_out_descriptors) {
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                _hidl_args.push_back((void *)&_hidl_out_descriptors);
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "interfaceChain", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++            _hidl_cb(_hidl_out_descriptors);
++        });
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> debug(const ::android::hardware::hidl_handle& fd, const ::android::hardware::hidl_vec<::android::hardware::hidl_string>& options) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::debug::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&fd);
++            _hidl_args.push_back((void *)&options);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "debug", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->debug(fd, options);
++
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "debug", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> interfaceDescriptor(interfaceDescriptor_cb _hidl_cb) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::interfaceDescriptor::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "interfaceDescriptor", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->interfaceDescriptor([&](const auto &_hidl_out_descriptor) {
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                _hidl_args.push_back((void *)&_hidl_out_descriptor);
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "interfaceDescriptor", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++            _hidl_cb(_hidl_out_descriptor);
++        });
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> getHashChain(getHashChain_cb _hidl_cb) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::getHashChain::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "getHashChain", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->getHashChain([&](const auto &_hidl_out_hashchain) {
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                _hidl_args.push_back((void *)&_hidl_out_hashchain);
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "getHashChain", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++            _hidl_cb(_hidl_out_hashchain);
++        });
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> setHALInstrumentation() override {
++        configureInstrumentation();
++        return ::android::hardware::Void();
++    }
++
++    ::android::hardware::Return<bool> linkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient, uint64_t cookie) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::linkToDeath::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&recipient);
++            _hidl_args.push_back((void *)&cookie);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "linkToDeath", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->linkToDeath(recipient, cookie);
++
++        bool _hidl_out_success = _hidl_return;
++        (void) _hidl_out_success;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_success);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "linkToDeath", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> ping() override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::ping::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "ping", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->ping();
++
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "ping", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> getDebugInfo(getDebugInfo_cb _hidl_cb) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::getDebugInfo::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "getDebugInfo", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->getDebugInfo([&](const auto &_hidl_out_info) {
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                _hidl_args.push_back((void *)&_hidl_out_info);
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "getDebugInfo", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++            _hidl_cb(_hidl_out_info);
++        });
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> notifySyspropsChanged() override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::notifySyspropsChanged::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "notifySyspropsChanged", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = addOnewayTask([mImpl = this->mImpl
++        #ifdef __ANDROID_DEBUGGABLE__
++        , mEnableInstrumentation = this->mEnableInstrumentation, mInstrumentationCallbacks = this->mInstrumentationCallbacks
++        #endif // __ANDROID_DEBUGGABLE__
++        ] {
++            mImpl->notifySyspropsChanged();
++
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "notifySyspropsChanged", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++        });
++        return _hidl_return;
++    }
++    ::android::hardware::Return<bool> unlinkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::unlinkToDeath::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&recipient);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "unlinkToDeath", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->unlinkToDeath(recipient);
++
++        bool _hidl_out_success = _hidl_return;
++        (void) _hidl_out_success;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_success);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "unlinkToDeath", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++
++private:
++    const ::android::sp<IWaydroidDisplay> mImpl;
++    ::android::hardware::details::TaskRunner mOnewayQueue;
++
++    ::android::hardware::Return<void> addOnewayTask(std::function<void(void)>);
++
++};
++
++}  // namespace V1_1
++}  // namespace display
++}  // namespace waydroid
++}  // namespace vendor
++
++#endif  // HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_1_BSWAYDROIDDISPLAY_H
+diff --git a/interfaces/display/include/vendor/waydroid/display/1.1/IHwWaydroidDisplay.h b/interfaces/display/include/vendor/waydroid/display/1.1/IHwWaydroidDisplay.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..12a85c7453d9bfce02d2fa4fed12a99c0a3dff2c
+--- /dev/null
++++ b/interfaces/display/include/vendor/waydroid/display/1.1/IHwWaydroidDisplay.h
+@@ -0,0 +1,23 @@
++#ifndef HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_1_IHWWAYDROIDDISPLAY_H
++#define HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_1_IHWWAYDROIDDISPLAY_H
++
++#include <vendor/waydroid/display/1.1/IWaydroidDisplay.h>
++
++#include <android/hardware/graphics/composer/2.1/hwtypes.h>
++#include <vendor/waydroid/display/1.0/BnHwWaydroidDisplay.h>
++#include <vendor/waydroid/display/1.0/BpHwWaydroidDisplay.h>
++
++#include <hidl/Status.h>
++#include <hwbinder/IBinder.h>
++#include <hwbinder/Parcel.h>
++
++namespace vendor {
++namespace waydroid {
++namespace display {
++namespace V1_1 {
++}  // namespace V1_1
++}  // namespace display
++}  // namespace waydroid
++}  // namespace vendor
++
++#endif  // HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_1_IHWWAYDROIDDISPLAY_H
+diff --git a/interfaces/display/include/vendor/waydroid/display/1.1/IWaydroidDisplay.h b/interfaces/display/include/vendor/waydroid/display/1.1/IWaydroidDisplay.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..cb7ead4464e43dcb2bca85b3123d1a7381d38e9f
+--- /dev/null
++++ b/interfaces/display/include/vendor/waydroid/display/1.1/IWaydroidDisplay.h
+@@ -0,0 +1,274 @@
++#ifndef HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_1_IWAYDROIDDISPLAY_H
++#define HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_1_IWAYDROIDDISPLAY_H
++
++#include <android/hardware/graphics/composer/2.1/types.h>
++#include <vendor/waydroid/display/1.0/IWaydroidDisplay.h>
++
++#include <android/hidl/manager/1.0/IServiceNotification.h>
++
++#include <hidl/HidlSupport.h>
++#include <hidl/MQDescriptor.h>
++#include <hidl/Status.h>
++#include <utils/NativeHandle.h>
++#include <utils/misc.h>
++
++namespace vendor {
++namespace waydroid {
++namespace display {
++namespace V1_1 {
++
++struct IWaydroidDisplay : public ::vendor::waydroid::display::V1_0::IWaydroidDisplay {
++    /**
++     * Type tag for use in template logic that indicates this is a 'pure' class.
++     */
++    typedef ::android::hardware::details::i_tag _hidl_tag;
++
++    /**
++     * Fully qualified interface name: "vendor.waydroid.display@1.1::IWaydroidDisplay"
++     */
++    static const char* descriptor;
++
++    /**
++     * Returns whether this object's implementation is outside of the current process.
++     */
++    virtual bool isRemote() const override { return false; }
++
++    virtual ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerName(uint32_t layer, const ::android::hardware::hidl_string& name) override = 0;
++
++    virtual ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerHandleInfo(uint32_t layer, uint32_t format, uint32_t stride) override = 0;
++
++    virtual ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerHandleInfo(uint32_t format, uint32_t stride) override = 0;
++
++    virtual ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerSize(uint32_t layer, uint32_t width, uint32_t height) = 0;
++
++    virtual ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerSize(uint32_t width, uint32_t height) = 0;
++
++    /**
++     * Return callback for interfaceChain
++     */
++    using interfaceChain_cb = std::function<void(const ::android::hardware::hidl_vec<::android::hardware::hidl_string>& descriptors)>;
++    /*
++     * Provides run-time type information for this object.
++     * For example, for the following interface definition:
++     *     package android.hardware.foo@1.0;
++     *     interface IParent {};
++     *     interface IChild extends IParent {};
++     * Calling interfaceChain on an IChild object must yield the following:
++     *     ["android.hardware.foo@1.0::IChild",
++     *      "android.hardware.foo@1.0::IParent"
++     *      "android.hidl.base@1.0::IBase"]
++     *
++     * @return descriptors a vector of descriptors of the run-time type of the
++     *         object.
++     */
++    virtual ::android::hardware::Return<void> interfaceChain(interfaceChain_cb _hidl_cb) override;
++
++    /*
++     * Emit diagnostic information to the given file.
++     *
++     * Optionally overriden.
++     *
++     * @param fd      File descriptor to dump data to.
++     *                Must only be used for the duration of this call.
++     * @param options Arguments for debugging.
++     *                Must support empty for default debug information.
++     */
++    virtual ::android::hardware::Return<void> debug(const ::android::hardware::hidl_handle& fd, const ::android::hardware::hidl_vec<::android::hardware::hidl_string>& options) override;
++
++    /**
++     * Return callback for interfaceDescriptor
++     */
++    using interfaceDescriptor_cb = std::function<void(const ::android::hardware::hidl_string& descriptor)>;
++    /*
++     * Provides run-time type information for this object.
++     * For example, for the following interface definition:
++     *     package android.hardware.foo@1.0;
++     *     interface IParent {};
++     *     interface IChild extends IParent {};
++     * Calling interfaceDescriptor on an IChild object must yield
++     *     "android.hardware.foo@1.0::IChild"
++     *
++     * @return descriptor a descriptor of the run-time type of the
++     *         object (the first element of the vector returned by
++     *         interfaceChain())
++     */
++    virtual ::android::hardware::Return<void> interfaceDescriptor(interfaceDescriptor_cb _hidl_cb) override;
++
++    /**
++     * Return callback for getHashChain
++     */
++    using getHashChain_cb = std::function<void(const ::android::hardware::hidl_vec<::android::hardware::hidl_array<uint8_t, 32>>& hashchain)>;
++    /*
++     * Returns hashes of the source HAL files that define the interfaces of the
++     * runtime type information on the object.
++     * For example, for the following interface definition:
++     *     package android.hardware.foo@1.0;
++     *     interface IParent {};
++     *     interface IChild extends IParent {};
++     * Calling interfaceChain on an IChild object must yield the following:
++     *     [(hash of IChild.hal),
++     *      (hash of IParent.hal)
++     *      (hash of IBase.hal)].
++     *
++     * SHA-256 is used as the hashing algorithm. Each hash has 32 bytes
++     * according to SHA-256 standard.
++     *
++     * @return hashchain a vector of SHA-1 digests
++     */
++    virtual ::android::hardware::Return<void> getHashChain(getHashChain_cb _hidl_cb) override;
++
++    /*
++     * This method trigger the interface to enable/disable instrumentation based
++     * on system property hal.instrumentation.enable.
++     */
++    virtual ::android::hardware::Return<void> setHALInstrumentation() override;
++
++    /*
++     * Registers a death recipient, to be called when the process hosting this
++     * interface dies.
++     *
++     * @param recipient a hidl_death_recipient callback object
++     * @param cookie a cookie that must be returned with the callback
++     * @return success whether the death recipient was registered successfully.
++     */
++    virtual ::android::hardware::Return<bool> linkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient, uint64_t cookie) override;
++
++    /*
++     * Provides way to determine if interface is running without requesting
++     * any functionality.
++     */
++    virtual ::android::hardware::Return<void> ping() override;
++
++    /**
++     * Return callback for getDebugInfo
++     */
++    using getDebugInfo_cb = std::function<void(const ::android::hidl::base::V1_0::DebugInfo& info)>;
++    /*
++     * Get debug information on references on this interface.
++     * @return info debugging information. See comments of DebugInfo.
++     */
++    virtual ::android::hardware::Return<void> getDebugInfo(getDebugInfo_cb _hidl_cb) override;
++
++    /*
++     * This method notifies the interface that one or more system properties
++     * have changed. The default implementation calls
++     * (C++)  report_sysprop_change() in libcutils or
++     * (Java) android.os.SystemProperties.reportSyspropChanged,
++     * which in turn calls a set of registered callbacks (eg to update trace
++     * tags).
++     */
++    virtual ::android::hardware::Return<void> notifySyspropsChanged() override;
++
++    /*
++     * Unregisters the registered death recipient. If this service was registered
++     * multiple times with the same exact death recipient, this unlinks the most
++     * recently registered one.
++     *
++     * @param recipient a previously registered hidl_death_recipient callback
++     * @return success whether the death recipient was unregistered successfully.
++     */
++    virtual ::android::hardware::Return<bool> unlinkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient) override;
++
++    // cast static functions
++    /**
++     * This performs a checked cast based on what the underlying implementation actually is.
++     */
++    static ::android::hardware::Return<::android::sp<::vendor::waydroid::display::V1_1::IWaydroidDisplay>> castFrom(const ::android::sp<::vendor::waydroid::display::V1_1::IWaydroidDisplay>& parent, bool emitError = false);
++    /**
++     * This performs a checked cast based on what the underlying implementation actually is.
++     */
++    static ::android::hardware::Return<::android::sp<::vendor::waydroid::display::V1_1::IWaydroidDisplay>> castFrom(const ::android::sp<::vendor::waydroid::display::V1_0::IWaydroidDisplay>& parent, bool emitError = false);
++    /**
++     * This performs a checked cast based on what the underlying implementation actually is.
++     */
++    static ::android::hardware::Return<::android::sp<::vendor::waydroid::display::V1_1::IWaydroidDisplay>> castFrom(const ::android::sp<::android::hidl::base::V1_0::IBase>& parent, bool emitError = false);
++
++    // helper methods for interactions with the hwservicemanager
++    /**
++     * This gets the service of this type with the specified instance name. If the
++     * service is currently not available or not in the VINTF manifest on a Trebilized
++     * device, this will return nullptr. This is useful when you don't want to block
++     * during device boot. If getStub is true, this will try to return an unwrapped
++     * passthrough implementation in the same process. This is useful when getting an
++     * implementation from the same partition/compilation group.
++     *
++     * In general, prefer getService(std::string,bool)
++     */
++    static ::android::sp<IWaydroidDisplay> tryGetService(const std::string &serviceName="default", bool getStub=false);
++    /**
++     * Deprecated. See tryGetService(std::string, bool)
++     */
++    static ::android::sp<IWaydroidDisplay> tryGetService(const char serviceName[], bool getStub=false)  { std::string str(serviceName ? serviceName : "");      return tryGetService(str, getStub); }
++    /**
++     * Deprecated. See tryGetService(std::string, bool)
++     */
++    static ::android::sp<IWaydroidDisplay> tryGetService(const ::android::hardware::hidl_string& serviceName, bool getStub=false)  { std::string str(serviceName.c_str());      return tryGetService(str, getStub); }
++    /**
++     * Calls tryGetService("default", bool). This is the recommended instance name for singleton services.
++     */
++    static ::android::sp<IWaydroidDisplay> tryGetService(bool getStub) { return tryGetService("default", getStub); }
++    /**
++     * This gets the service of this type with the specified instance name. If the
++     * service is not in the VINTF manifest on a Trebilized device, this will return
++     * nullptr. If the service is not available, this will wait for the service to
++     * become available. If the service is a lazy service, this will start the service
++     * and return when it becomes available. If getStub is true, this will try to
++     * return an unwrapped passthrough implementation in the same process. This is
++     * useful when getting an implementation from the same partition/compilation group.
++     */
++    static ::android::sp<IWaydroidDisplay> getService(const std::string &serviceName="default", bool getStub=false);
++    /**
++     * Deprecated. See getService(std::string, bool)
++     */
++    static ::android::sp<IWaydroidDisplay> getService(const char serviceName[], bool getStub=false)  { std::string str(serviceName ? serviceName : "");      return getService(str, getStub); }
++    /**
++     * Deprecated. See getService(std::string, bool)
++     */
++    static ::android::sp<IWaydroidDisplay> getService(const ::android::hardware::hidl_string& serviceName, bool getStub=false)  { std::string str(serviceName.c_str());      return getService(str, getStub); }
++    /**
++     * Calls getService("default", bool). This is the recommended instance name for singleton services.
++     */
++    static ::android::sp<IWaydroidDisplay> getService(bool getStub) { return getService("default", getStub); }
++    /**
++     * Registers a service with the service manager. For Trebilized devices, the service
++     * must also be in the VINTF manifest.
++     */
++    __attribute__ ((warn_unused_result))::android::status_t registerAsService(const std::string &serviceName="default");
++    /**
++     * Registers for notifications for when a service is registered.
++     */
++    static bool registerForNotifications(
++            const std::string &serviceName,
++            const ::android::sp<::android::hidl::manager::V1_0::IServiceNotification> &notification);
++};
++
++//
++// type declarations for package
++//
++
++static inline std::string toString(const ::android::sp<::vendor::waydroid::display::V1_1::IWaydroidDisplay>& o);
++
++//
++// type header definitions for package
++//
++
++static inline std::string toString(const ::android::sp<::vendor::waydroid::display::V1_1::IWaydroidDisplay>& o) {
++    std::string os = "[class or subclass of ";
++    os += ::vendor::waydroid::display::V1_1::IWaydroidDisplay::descriptor;
++    os += "]";
++    os += o->isRemote() ? "@remote" : "@local";
++    return os;
++}
++
++
++}  // namespace V1_1
++}  // namespace display
++}  // namespace waydroid
++}  // namespace vendor
++
++//
++// global type declarations for package
++//
++
++
++#endif  // HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_1_IWAYDROIDDISPLAY_H
+diff --git a/interfaces/display/include/vendor/waydroid/display/1.2/BnHwWaydroidDisplay.h b/interfaces/display/include/vendor/waydroid/display/1.2/BnHwWaydroidDisplay.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..dbd88c4d72631b3e88968fe068964d696da0b674
+--- /dev/null
++++ b/interfaces/display/include/vendor/waydroid/display/1.2/BnHwWaydroidDisplay.h
+@@ -0,0 +1,65 @@
++#ifndef HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_2_BNHWWAYDROIDDISPLAY_H
++#define HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_2_BNHWWAYDROIDDISPLAY_H
++
++#include <vendor/waydroid/display/1.2/IHwWaydroidDisplay.h>
++
++namespace vendor {
++namespace waydroid {
++namespace display {
++namespace V1_2 {
++
++struct BnHwWaydroidDisplay : public ::android::hidl::base::V1_0::BnHwBase {
++    explicit BnHwWaydroidDisplay(const ::android::sp<IWaydroidDisplay> &_hidl_impl);
++    explicit BnHwWaydroidDisplay(const ::android::sp<IWaydroidDisplay> &_hidl_impl, const std::string& HidlInstrumentor_package, const std::string& HidlInstrumentor_interface);
++
++    virtual ~BnHwWaydroidDisplay();
++
++    ::android::status_t onTransact(
++            uint32_t _hidl_code,
++            const ::android::hardware::Parcel &_hidl_data,
++            ::android::hardware::Parcel *_hidl_reply,
++            uint32_t _hidl_flags = 0,
++            TransactCallback _hidl_cb = nullptr) override;
++
++
++    /**
++     * The pure class is what this class wraps.
++     */
++    typedef IWaydroidDisplay Pure;
++
++    /**
++     * Type tag for use in template logic that indicates this is a 'native' class.
++     */
++    typedef ::android::hardware::details::bnhw_tag _hidl_tag;
++
++    ::android::sp<IWaydroidDisplay> getImpl() { return _hidl_mImpl; }
++    // Methods from ::vendor::waydroid::display::V1_2::IWaydroidDisplay follow.
++    static ::android::status_t _hidl_setMouseMetadata(
++            ::android::hidl::base::V1_0::BnHwBase* _hidl_this,
++            const ::android::hardware::Parcel &_hidl_data,
++            ::android::hardware::Parcel *_hidl_reply,
++            TransactCallback _hidl_cb);
++
++
++
++private:
++    // Methods from ::vendor::waydroid::display::V1_0::IWaydroidDisplay follow.
++
++    // Methods from ::vendor::waydroid::display::V1_1::IWaydroidDisplay follow.
++
++    // Methods from ::vendor::waydroid::display::V1_2::IWaydroidDisplay follow.
++
++    // Methods from ::android::hidl::base::V1_0::IBase follow.
++    ::android::hardware::Return<void> ping();
++    using getDebugInfo_cb = ::android::hidl::base::V1_0::IBase::getDebugInfo_cb;
++    ::android::hardware::Return<void> getDebugInfo(getDebugInfo_cb _hidl_cb);
++
++    ::android::sp<IWaydroidDisplay> _hidl_mImpl;
++};
++
++}  // namespace V1_2
++}  // namespace display
++}  // namespace waydroid
++}  // namespace vendor
++
++#endif  // HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_2_BNHWWAYDROIDDISPLAY_H
+diff --git a/interfaces/display/include/vendor/waydroid/display/1.2/BpHwWaydroidDisplay.h b/interfaces/display/include/vendor/waydroid/display/1.2/BpHwWaydroidDisplay.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..856d0039642c26111124690172bfe45901a849f4
+--- /dev/null
++++ b/interfaces/display/include/vendor/waydroid/display/1.2/BpHwWaydroidDisplay.h
+@@ -0,0 +1,68 @@
++#ifndef HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_2_BPHWWAYDROIDDISPLAY_H
++#define HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_2_BPHWWAYDROIDDISPLAY_H
++
++#include <hidl/HidlTransportSupport.h>
++
++#include <vendor/waydroid/display/1.2/IHwWaydroidDisplay.h>
++
++#include <mutex>
++namespace vendor {
++namespace waydroid {
++namespace display {
++namespace V1_2 {
++
++struct BpHwWaydroidDisplay : public ::android::hardware::BpInterface<IWaydroidDisplay>, public ::android::hardware::details::HidlInstrumentor {
++    explicit BpHwWaydroidDisplay(const ::android::sp<::android::hardware::IBinder> &_hidl_impl);
++
++    /**
++     * The pure class is what this class wraps.
++     */
++    typedef IWaydroidDisplay Pure;
++
++    /**
++     * Type tag for use in template logic that indicates this is a 'proxy' class.
++     */
++    typedef ::android::hardware::details::bphw_tag _hidl_tag;
++
++    virtual bool isRemote() const override { return true; }
++
++    void onLastStrongRef(const void* id) override;
++
++    // Methods from ::vendor::waydroid::display::V1_2::IWaydroidDisplay follow.
++    static ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error>  _hidl_setMouseMetadata(::android::hardware::IInterface* _hidl_this, ::android::hardware::details::HidlInstrumentor *_hidl_this_instrumentor, uint32_t layer, int32_t style, float hotspotX, float hotspotY);
++
++    // Methods from ::vendor::waydroid::display::V1_0::IWaydroidDisplay follow.
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerName(uint32_t layer, const ::android::hardware::hidl_string& name) override;
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerHandleInfo(uint32_t layer, uint32_t format, uint32_t stride) override;
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerHandleInfo(uint32_t format, uint32_t stride) override;
++
++    // Methods from ::vendor::waydroid::display::V1_1::IWaydroidDisplay follow.
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerSize(uint32_t layer, uint32_t width, uint32_t height) override;
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerSize(uint32_t width, uint32_t height) override;
++
++    // Methods from ::vendor::waydroid::display::V1_2::IWaydroidDisplay follow.
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setMouseMetadata(uint32_t layer, int32_t style, float hotspotX, float hotspotY) override;
++
++    // Methods from ::android::hidl::base::V1_0::IBase follow.
++    ::android::hardware::Return<void> interfaceChain(interfaceChain_cb _hidl_cb) override;
++    ::android::hardware::Return<void> debug(const ::android::hardware::hidl_handle& fd, const ::android::hardware::hidl_vec<::android::hardware::hidl_string>& options) override;
++    ::android::hardware::Return<void> interfaceDescriptor(interfaceDescriptor_cb _hidl_cb) override;
++    ::android::hardware::Return<void> getHashChain(getHashChain_cb _hidl_cb) override;
++    ::android::hardware::Return<void> setHALInstrumentation() override;
++    ::android::hardware::Return<bool> linkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient, uint64_t cookie) override;
++    ::android::hardware::Return<void> ping() override;
++    ::android::hardware::Return<void> getDebugInfo(getDebugInfo_cb _hidl_cb) override;
++    ::android::hardware::Return<void> notifySyspropsChanged() override;
++    ::android::hardware::Return<bool> unlinkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient) override;
++
++private:
++    std::mutex _hidl_mMutex;
++    std::vector<::android::sp<::android::hardware::hidl_binder_death_recipient>> _hidl_mDeathRecipients;
++};
++
++}  // namespace V1_2
++}  // namespace display
++}  // namespace waydroid
++}  // namespace vendor
++
++#endif  // HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_2_BPHWWAYDROIDDISPLAY_H
+diff --git a/interfaces/display/include/vendor/waydroid/display/1.2/BsWaydroidDisplay.h b/interfaces/display/include/vendor/waydroid/display/1.2/BsWaydroidDisplay.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..d893540686044844862c2373652e356bc548872a
+--- /dev/null
++++ b/interfaces/display/include/vendor/waydroid/display/1.2/BsWaydroidDisplay.h
+@@ -0,0 +1,519 @@
++#ifndef HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_2_BSWAYDROIDDISPLAY_H
++#define HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_2_BSWAYDROIDDISPLAY_H
++
++#include <android-base/macros.h>
++#include <cutils/trace.h>
++#include <future>
++#include <vendor/waydroid/display/1.2/IWaydroidDisplay.h>
++
++#include <hidl/HidlPassthroughSupport.h>
++#include <hidl/TaskRunner.h>
++namespace vendor {
++namespace waydroid {
++namespace display {
++namespace V1_2 {
++
++struct BsWaydroidDisplay : IWaydroidDisplay, ::android::hardware::details::HidlInstrumentor {
++    explicit BsWaydroidDisplay(const ::android::sp<IWaydroidDisplay> impl);
++
++    /**
++     * The pure class is what this class wraps.
++     */
++    typedef IWaydroidDisplay Pure;
++
++    typedef ::android::hardware::details::bs_tag _hidl_tag;
++
++    // Methods from ::vendor::waydroid::display::V1_0::IWaydroidDisplay follow.
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerName(uint32_t layer, const ::android::hardware::hidl_string& name) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::setLayerName::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&layer);
++            _hidl_args.push_back((void *)&name);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setLayerName", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->setLayerName(layer, name);
++
++        ::android::hardware::graphics::composer::V2_1::Error _hidl_out_error = _hidl_return;
++        (void) _hidl_out_error;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_error);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setLayerName", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerHandleInfo(uint32_t layer, uint32_t format, uint32_t stride) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::setLayerHandleInfo::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&layer);
++            _hidl_args.push_back((void *)&format);
++            _hidl_args.push_back((void *)&stride);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setLayerHandleInfo", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->setLayerHandleInfo(layer, format, stride);
++
++        ::android::hardware::graphics::composer::V2_1::Error _hidl_out_error = _hidl_return;
++        (void) _hidl_out_error;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_error);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setLayerHandleInfo", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerHandleInfo(uint32_t format, uint32_t stride) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::setTargetLayerHandleInfo::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&format);
++            _hidl_args.push_back((void *)&stride);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setTargetLayerHandleInfo", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->setTargetLayerHandleInfo(format, stride);
++
++        ::android::hardware::graphics::composer::V2_1::Error _hidl_out_error = _hidl_return;
++        (void) _hidl_out_error;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_error);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setTargetLayerHandleInfo", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++
++    // Methods from ::vendor::waydroid::display::V1_1::IWaydroidDisplay follow.
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerSize(uint32_t layer, uint32_t width, uint32_t height) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::setLayerSize::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&layer);
++            _hidl_args.push_back((void *)&width);
++            _hidl_args.push_back((void *)&height);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.1", "IWaydroidDisplay", "setLayerSize", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->setLayerSize(layer, width, height);
++
++        ::android::hardware::graphics::composer::V2_1::Error _hidl_out_error = _hidl_return;
++        (void) _hidl_out_error;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_error);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.1", "IWaydroidDisplay", "setLayerSize", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerSize(uint32_t width, uint32_t height) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::setTargetLayerSize::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&width);
++            _hidl_args.push_back((void *)&height);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.1", "IWaydroidDisplay", "setTargetLayerSize", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->setTargetLayerSize(width, height);
++
++        ::android::hardware::graphics::composer::V2_1::Error _hidl_out_error = _hidl_return;
++        (void) _hidl_out_error;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_error);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.1", "IWaydroidDisplay", "setTargetLayerSize", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++
++    // Methods from ::vendor::waydroid::display::V1_2::IWaydroidDisplay follow.
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setMouseMetadata(uint32_t layer, int32_t style, float hotspotX, float hotspotY) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::setMouseMetadata::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&layer);
++            _hidl_args.push_back((void *)&style);
++            _hidl_args.push_back((void *)&hotspotX);
++            _hidl_args.push_back((void *)&hotspotY);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.2", "IWaydroidDisplay", "setMouseMetadata", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->setMouseMetadata(layer, style, hotspotX, hotspotY);
++
++        ::android::hardware::graphics::composer::V2_1::Error _hidl_out_error = _hidl_return;
++        (void) _hidl_out_error;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_error);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.2", "IWaydroidDisplay", "setMouseMetadata", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++
++    // Methods from ::android::hidl::base::V1_0::IBase follow.
++    ::android::hardware::Return<void> interfaceChain(interfaceChain_cb _hidl_cb) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::interfaceChain::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "interfaceChain", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->interfaceChain([&](const auto &_hidl_out_descriptors) {
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                _hidl_args.push_back((void *)&_hidl_out_descriptors);
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "interfaceChain", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++            _hidl_cb(_hidl_out_descriptors);
++        });
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> debug(const ::android::hardware::hidl_handle& fd, const ::android::hardware::hidl_vec<::android::hardware::hidl_string>& options) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::debug::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&fd);
++            _hidl_args.push_back((void *)&options);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "debug", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->debug(fd, options);
++
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "debug", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> interfaceDescriptor(interfaceDescriptor_cb _hidl_cb) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::interfaceDescriptor::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "interfaceDescriptor", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->interfaceDescriptor([&](const auto &_hidl_out_descriptor) {
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                _hidl_args.push_back((void *)&_hidl_out_descriptor);
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "interfaceDescriptor", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++            _hidl_cb(_hidl_out_descriptor);
++        });
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> getHashChain(getHashChain_cb _hidl_cb) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::getHashChain::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "getHashChain", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->getHashChain([&](const auto &_hidl_out_hashchain) {
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                _hidl_args.push_back((void *)&_hidl_out_hashchain);
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "getHashChain", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++            _hidl_cb(_hidl_out_hashchain);
++        });
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> setHALInstrumentation() override {
++        configureInstrumentation();
++        return ::android::hardware::Void();
++    }
++
++    ::android::hardware::Return<bool> linkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient, uint64_t cookie) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::linkToDeath::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&recipient);
++            _hidl_args.push_back((void *)&cookie);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "linkToDeath", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->linkToDeath(recipient, cookie);
++
++        bool _hidl_out_success = _hidl_return;
++        (void) _hidl_out_success;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_success);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "linkToDeath", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> ping() override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::ping::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "ping", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->ping();
++
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "ping", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> getDebugInfo(getDebugInfo_cb _hidl_cb) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::getDebugInfo::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "getDebugInfo", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->getDebugInfo([&](const auto &_hidl_out_info) {
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                _hidl_args.push_back((void *)&_hidl_out_info);
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "getDebugInfo", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++            _hidl_cb(_hidl_out_info);
++        });
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> notifySyspropsChanged() override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::notifySyspropsChanged::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "notifySyspropsChanged", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = addOnewayTask([mImpl = this->mImpl
++        #ifdef __ANDROID_DEBUGGABLE__
++        , mEnableInstrumentation = this->mEnableInstrumentation, mInstrumentationCallbacks = this->mInstrumentationCallbacks
++        #endif // __ANDROID_DEBUGGABLE__
++        ] {
++            mImpl->notifySyspropsChanged();
++
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "notifySyspropsChanged", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++        });
++        return _hidl_return;
++    }
++    ::android::hardware::Return<bool> unlinkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::unlinkToDeath::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&recipient);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "unlinkToDeath", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->unlinkToDeath(recipient);
++
++        bool _hidl_out_success = _hidl_return;
++        (void) _hidl_out_success;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_success);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "unlinkToDeath", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++
++private:
++    const ::android::sp<IWaydroidDisplay> mImpl;
++    ::android::hardware::details::TaskRunner mOnewayQueue;
++
++    ::android::hardware::Return<void> addOnewayTask(std::function<void(void)>);
++
++};
++
++}  // namespace V1_2
++}  // namespace display
++}  // namespace waydroid
++}  // namespace vendor
++
++#endif  // HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_2_BSWAYDROIDDISPLAY_H
+diff --git a/interfaces/display/include/vendor/waydroid/display/1.2/IHwWaydroidDisplay.h b/interfaces/display/include/vendor/waydroid/display/1.2/IHwWaydroidDisplay.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..28ca4cdcecc2a5b7588512553e9973fbfadaf570
+--- /dev/null
++++ b/interfaces/display/include/vendor/waydroid/display/1.2/IHwWaydroidDisplay.h
+@@ -0,0 +1,23 @@
++#ifndef HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_2_IHWWAYDROIDDISPLAY_H
++#define HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_2_IHWWAYDROIDDISPLAY_H
++
++#include <vendor/waydroid/display/1.2/IWaydroidDisplay.h>
++
++#include <android/hardware/graphics/composer/2.1/hwtypes.h>
++#include <vendor/waydroid/display/1.1/BnHwWaydroidDisplay.h>
++#include <vendor/waydroid/display/1.1/BpHwWaydroidDisplay.h>
++
++#include <hidl/Status.h>
++#include <hwbinder/IBinder.h>
++#include <hwbinder/Parcel.h>
++
++namespace vendor {
++namespace waydroid {
++namespace display {
++namespace V1_2 {
++}  // namespace V1_2
++}  // namespace display
++}  // namespace waydroid
++}  // namespace vendor
++
++#endif  // HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_2_IHWWAYDROIDDISPLAY_H
+diff --git a/interfaces/display/include/vendor/waydroid/display/1.2/IWaydroidDisplay.h b/interfaces/display/include/vendor/waydroid/display/1.2/IWaydroidDisplay.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..d6b6d32d14a07cf37029b2330c185911039d5807
+--- /dev/null
++++ b/interfaces/display/include/vendor/waydroid/display/1.2/IWaydroidDisplay.h
+@@ -0,0 +1,280 @@
++#ifndef HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_2_IWAYDROIDDISPLAY_H
++#define HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_2_IWAYDROIDDISPLAY_H
++
++#include <android/hardware/graphics/composer/2.1/types.h>
++#include <vendor/waydroid/display/1.1/IWaydroidDisplay.h>
++
++#include <android/hidl/manager/1.0/IServiceNotification.h>
++
++#include <hidl/HidlSupport.h>
++#include <hidl/MQDescriptor.h>
++#include <hidl/Status.h>
++#include <utils/NativeHandle.h>
++#include <utils/misc.h>
++
++namespace vendor {
++namespace waydroid {
++namespace display {
++namespace V1_2 {
++
++struct IWaydroidDisplay : public ::vendor::waydroid::display::V1_1::IWaydroidDisplay {
++    /**
++     * Type tag for use in template logic that indicates this is a 'pure' class.
++     */
++    typedef ::android::hardware::details::i_tag _hidl_tag;
++
++    /**
++     * Fully qualified interface name: "vendor.waydroid.display@1.2::IWaydroidDisplay"
++     */
++    static const char* descriptor;
++
++    /**
++     * Returns whether this object's implementation is outside of the current process.
++     */
++    virtual bool isRemote() const override { return false; }
++
++    virtual ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerName(uint32_t layer, const ::android::hardware::hidl_string& name) override = 0;
++
++    virtual ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerHandleInfo(uint32_t layer, uint32_t format, uint32_t stride) override = 0;
++
++    virtual ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerHandleInfo(uint32_t format, uint32_t stride) override = 0;
++
++    virtual ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerSize(uint32_t layer, uint32_t width, uint32_t height) override = 0;
++
++    virtual ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerSize(uint32_t width, uint32_t height) override = 0;
++
++    virtual ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setMouseMetadata(uint32_t layer, int32_t style, float hotspotX, float hotspotY) = 0;
++
++    /**
++     * Return callback for interfaceChain
++     */
++    using interfaceChain_cb = std::function<void(const ::android::hardware::hidl_vec<::android::hardware::hidl_string>& descriptors)>;
++    /*
++     * Provides run-time type information for this object.
++     * For example, for the following interface definition:
++     *     package android.hardware.foo@1.0;
++     *     interface IParent {};
++     *     interface IChild extends IParent {};
++     * Calling interfaceChain on an IChild object must yield the following:
++     *     ["android.hardware.foo@1.0::IChild",
++     *      "android.hardware.foo@1.0::IParent"
++     *      "android.hidl.base@1.0::IBase"]
++     *
++     * @return descriptors a vector of descriptors of the run-time type of the
++     *         object.
++     */
++    virtual ::android::hardware::Return<void> interfaceChain(interfaceChain_cb _hidl_cb) override;
++
++    /*
++     * Emit diagnostic information to the given file.
++     *
++     * Optionally overriden.
++     *
++     * @param fd      File descriptor to dump data to.
++     *                Must only be used for the duration of this call.
++     * @param options Arguments for debugging.
++     *                Must support empty for default debug information.
++     */
++    virtual ::android::hardware::Return<void> debug(const ::android::hardware::hidl_handle& fd, const ::android::hardware::hidl_vec<::android::hardware::hidl_string>& options) override;
++
++    /**
++     * Return callback for interfaceDescriptor
++     */
++    using interfaceDescriptor_cb = std::function<void(const ::android::hardware::hidl_string& descriptor)>;
++    /*
++     * Provides run-time type information for this object.
++     * For example, for the following interface definition:
++     *     package android.hardware.foo@1.0;
++     *     interface IParent {};
++     *     interface IChild extends IParent {};
++     * Calling interfaceDescriptor on an IChild object must yield
++     *     "android.hardware.foo@1.0::IChild"
++     *
++     * @return descriptor a descriptor of the run-time type of the
++     *         object (the first element of the vector returned by
++     *         interfaceChain())
++     */
++    virtual ::android::hardware::Return<void> interfaceDescriptor(interfaceDescriptor_cb _hidl_cb) override;
++
++    /**
++     * Return callback for getHashChain
++     */
++    using getHashChain_cb = std::function<void(const ::android::hardware::hidl_vec<::android::hardware::hidl_array<uint8_t, 32>>& hashchain)>;
++    /*
++     * Returns hashes of the source HAL files that define the interfaces of the
++     * runtime type information on the object.
++     * For example, for the following interface definition:
++     *     package android.hardware.foo@1.0;
++     *     interface IParent {};
++     *     interface IChild extends IParent {};
++     * Calling interfaceChain on an IChild object must yield the following:
++     *     [(hash of IChild.hal),
++     *      (hash of IParent.hal)
++     *      (hash of IBase.hal)].
++     *
++     * SHA-256 is used as the hashing algorithm. Each hash has 32 bytes
++     * according to SHA-256 standard.
++     *
++     * @return hashchain a vector of SHA-1 digests
++     */
++    virtual ::android::hardware::Return<void> getHashChain(getHashChain_cb _hidl_cb) override;
++
++    /*
++     * This method trigger the interface to enable/disable instrumentation based
++     * on system property hal.instrumentation.enable.
++     */
++    virtual ::android::hardware::Return<void> setHALInstrumentation() override;
++
++    /*
++     * Registers a death recipient, to be called when the process hosting this
++     * interface dies.
++     *
++     * @param recipient a hidl_death_recipient callback object
++     * @param cookie a cookie that must be returned with the callback
++     * @return success whether the death recipient was registered successfully.
++     */
++    virtual ::android::hardware::Return<bool> linkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient, uint64_t cookie) override;
++
++    /*
++     * Provides way to determine if interface is running without requesting
++     * any functionality.
++     */
++    virtual ::android::hardware::Return<void> ping() override;
++
++    /**
++     * Return callback for getDebugInfo
++     */
++    using getDebugInfo_cb = std::function<void(const ::android::hidl::base::V1_0::DebugInfo& info)>;
++    /*
++     * Get debug information on references on this interface.
++     * @return info debugging information. See comments of DebugInfo.
++     */
++    virtual ::android::hardware::Return<void> getDebugInfo(getDebugInfo_cb _hidl_cb) override;
++
++    /*
++     * This method notifies the interface that one or more system properties
++     * have changed. The default implementation calls
++     * (C++)  report_sysprop_change() in libcutils or
++     * (Java) android.os.SystemProperties.reportSyspropChanged,
++     * which in turn calls a set of registered callbacks (eg to update trace
++     * tags).
++     */
++    virtual ::android::hardware::Return<void> notifySyspropsChanged() override;
++
++    /*
++     * Unregisters the registered death recipient. If this service was registered
++     * multiple times with the same exact death recipient, this unlinks the most
++     * recently registered one.
++     *
++     * @param recipient a previously registered hidl_death_recipient callback
++     * @return success whether the death recipient was unregistered successfully.
++     */
++    virtual ::android::hardware::Return<bool> unlinkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient) override;
++
++    // cast static functions
++    /**
++     * This performs a checked cast based on what the underlying implementation actually is.
++     */
++    static ::android::hardware::Return<::android::sp<::vendor::waydroid::display::V1_2::IWaydroidDisplay>> castFrom(const ::android::sp<::vendor::waydroid::display::V1_2::IWaydroidDisplay>& parent, bool emitError = false);
++    /**
++     * This performs a checked cast based on what the underlying implementation actually is.
++     */
++    static ::android::hardware::Return<::android::sp<::vendor::waydroid::display::V1_2::IWaydroidDisplay>> castFrom(const ::android::sp<::vendor::waydroid::display::V1_1::IWaydroidDisplay>& parent, bool emitError = false);
++    /**
++     * This performs a checked cast based on what the underlying implementation actually is.
++     */
++    static ::android::hardware::Return<::android::sp<::vendor::waydroid::display::V1_2::IWaydroidDisplay>> castFrom(const ::android::sp<::vendor::waydroid::display::V1_0::IWaydroidDisplay>& parent, bool emitError = false);
++    /**
++     * This performs a checked cast based on what the underlying implementation actually is.
++     */
++    static ::android::hardware::Return<::android::sp<::vendor::waydroid::display::V1_2::IWaydroidDisplay>> castFrom(const ::android::sp<::android::hidl::base::V1_0::IBase>& parent, bool emitError = false);
++
++    // helper methods for interactions with the hwservicemanager
++    /**
++     * This gets the service of this type with the specified instance name. If the
++     * service is currently not available or not in the VINTF manifest on a Trebilized
++     * device, this will return nullptr. This is useful when you don't want to block
++     * during device boot. If getStub is true, this will try to return an unwrapped
++     * passthrough implementation in the same process. This is useful when getting an
++     * implementation from the same partition/compilation group.
++     *
++     * In general, prefer getService(std::string,bool)
++     */
++    static ::android::sp<IWaydroidDisplay> tryGetService(const std::string &serviceName="default", bool getStub=false);
++    /**
++     * Deprecated. See tryGetService(std::string, bool)
++     */
++    static ::android::sp<IWaydroidDisplay> tryGetService(const char serviceName[], bool getStub=false)  { std::string str(serviceName ? serviceName : "");      return tryGetService(str, getStub); }
++    /**
++     * Deprecated. See tryGetService(std::string, bool)
++     */
++    static ::android::sp<IWaydroidDisplay> tryGetService(const ::android::hardware::hidl_string& serviceName, bool getStub=false)  { std::string str(serviceName.c_str());      return tryGetService(str, getStub); }
++    /**
++     * Calls tryGetService("default", bool). This is the recommended instance name for singleton services.
++     */
++    static ::android::sp<IWaydroidDisplay> tryGetService(bool getStub) { return tryGetService("default", getStub); }
++    /**
++     * This gets the service of this type with the specified instance name. If the
++     * service is not in the VINTF manifest on a Trebilized device, this will return
++     * nullptr. If the service is not available, this will wait for the service to
++     * become available. If the service is a lazy service, this will start the service
++     * and return when it becomes available. If getStub is true, this will try to
++     * return an unwrapped passthrough implementation in the same process. This is
++     * useful when getting an implementation from the same partition/compilation group.
++     */
++    static ::android::sp<IWaydroidDisplay> getService(const std::string &serviceName="default", bool getStub=false);
++    /**
++     * Deprecated. See getService(std::string, bool)
++     */
++    static ::android::sp<IWaydroidDisplay> getService(const char serviceName[], bool getStub=false)  { std::string str(serviceName ? serviceName : "");      return getService(str, getStub); }
++    /**
++     * Deprecated. See getService(std::string, bool)
++     */
++    static ::android::sp<IWaydroidDisplay> getService(const ::android::hardware::hidl_string& serviceName, bool getStub=false)  { std::string str(serviceName.c_str());      return getService(str, getStub); }
++    /**
++     * Calls getService("default", bool). This is the recommended instance name for singleton services.
++     */
++    static ::android::sp<IWaydroidDisplay> getService(bool getStub) { return getService("default", getStub); }
++    /**
++     * Registers a service with the service manager. For Trebilized devices, the service
++     * must also be in the VINTF manifest.
++     */
++    __attribute__ ((warn_unused_result))::android::status_t registerAsService(const std::string &serviceName="default");
++    /**
++     * Registers for notifications for when a service is registered.
++     */
++    static bool registerForNotifications(
++            const std::string &serviceName,
++            const ::android::sp<::android::hidl::manager::V1_0::IServiceNotification> &notification);
++};
++
++//
++// type declarations for package
++//
++
++static inline std::string toString(const ::android::sp<::vendor::waydroid::display::V1_2::IWaydroidDisplay>& o);
++
++//
++// type header definitions for package
++//
++
++static inline std::string toString(const ::android::sp<::vendor::waydroid::display::V1_2::IWaydroidDisplay>& o) {
++    std::string os = "[class or subclass of ";
++    os += ::vendor::waydroid::display::V1_2::IWaydroidDisplay::descriptor;
++    os += "]";
++    os += o->isRemote() ? "@remote" : "@local";
++    return os;
++}
++
++
++}  // namespace V1_2
++}  // namespace display
++}  // namespace waydroid
++}  // namespace vendor
++
++//
++// global type declarations for package
++//
++
++
++#endif  // HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_2_IWAYDROIDDISPLAY_H
+diff --git a/interfaces/display/include/vendor/waydroid/display/1.3/BnHwWaydroidDisplay.h b/interfaces/display/include/vendor/waydroid/display/1.3/BnHwWaydroidDisplay.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..ebc1947b7168145edd4e1e75dcf58083eacd31f1
+--- /dev/null
++++ b/interfaces/display/include/vendor/waydroid/display/1.3/BnHwWaydroidDisplay.h
+@@ -0,0 +1,74 @@
++#ifndef HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_3_BNHWWAYDROIDDISPLAY_H
++#define HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_3_BNHWWAYDROIDDISPLAY_H
++
++#include <vendor/waydroid/display/1.3/IHwWaydroidDisplay.h>
++
++namespace vendor {
++namespace waydroid {
++namespace display {
++namespace V1_3 {
++
++struct BnHwWaydroidDisplay : public ::android::hidl::base::V1_0::BnHwBase {
++    explicit BnHwWaydroidDisplay(const ::android::sp<IWaydroidDisplay> &_hidl_impl);
++    explicit BnHwWaydroidDisplay(const ::android::sp<IWaydroidDisplay> &_hidl_impl, const std::string& HidlInstrumentor_package, const std::string& HidlInstrumentor_interface);
++
++    virtual ~BnHwWaydroidDisplay();
++
++    ::android::status_t onTransact(
++            uint32_t _hidl_code,
++            const ::android::hardware::Parcel &_hidl_data,
++            ::android::hardware::Parcel *_hidl_reply,
++            uint32_t _hidl_flags = 0,
++            TransactCallback _hidl_cb = nullptr) override;
++
++
++    /**
++     * The pure class is what this class wraps.
++     */
++    typedef IWaydroidDisplay Pure;
++
++    /**
++     * Type tag for use in template logic that indicates this is a 'native' class.
++     */
++    typedef ::android::hardware::details::bnhw_tag _hidl_tag;
++
++    ::android::sp<IWaydroidDisplay> getImpl() { return _hidl_mImpl; }
++    // Methods from ::vendor::waydroid::display::V1_3::IWaydroidDisplay follow.
++    static ::android::status_t _hidl_postTaskBuffer(
++            ::android::hidl::base::V1_0::BnHwBase* _hidl_this,
++            const ::android::hardware::Parcel &_hidl_data,
++            ::android::hardware::Parcel *_hidl_reply,
++            TransactCallback _hidl_cb);
++
++
++    static ::android::status_t _hidl_updateTaskList(
++            ::android::hidl::base::V1_0::BnHwBase* _hidl_this,
++            const ::android::hardware::Parcel &_hidl_data,
++            ::android::hardware::Parcel *_hidl_reply,
++            TransactCallback _hidl_cb);
++
++
++
++private:
++    // Methods from ::vendor::waydroid::display::V1_0::IWaydroidDisplay follow.
++
++    // Methods from ::vendor::waydroid::display::V1_1::IWaydroidDisplay follow.
++
++    // Methods from ::vendor::waydroid::display::V1_2::IWaydroidDisplay follow.
++
++    // Methods from ::vendor::waydroid::display::V1_3::IWaydroidDisplay follow.
++
++    // Methods from ::android::hidl::base::V1_0::IBase follow.
++    ::android::hardware::Return<void> ping();
++    using getDebugInfo_cb = ::android::hidl::base::V1_0::IBase::getDebugInfo_cb;
++    ::android::hardware::Return<void> getDebugInfo(getDebugInfo_cb _hidl_cb);
++
++    ::android::sp<IWaydroidDisplay> _hidl_mImpl;
++};
++
++}  // namespace V1_3
++}  // namespace display
++}  // namespace waydroid
++}  // namespace vendor
++
++#endif  // HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_3_BNHWWAYDROIDDISPLAY_H
+diff --git a/interfaces/display/include/vendor/waydroid/display/1.3/BpHwWaydroidDisplay.h b/interfaces/display/include/vendor/waydroid/display/1.3/BpHwWaydroidDisplay.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..52553340e288453ad4083c9b3007097f1bd79743
+--- /dev/null
++++ b/interfaces/display/include/vendor/waydroid/display/1.3/BpHwWaydroidDisplay.h
+@@ -0,0 +1,73 @@
++#ifndef HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_3_BPHWWAYDROIDDISPLAY_H
++#define HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_3_BPHWWAYDROIDDISPLAY_H
++
++#include <hidl/HidlTransportSupport.h>
++
++#include <vendor/waydroid/display/1.3/IHwWaydroidDisplay.h>
++
++#include <mutex>
++namespace vendor {
++namespace waydroid {
++namespace display {
++namespace V1_3 {
++
++struct BpHwWaydroidDisplay : public ::android::hardware::BpInterface<IWaydroidDisplay>, public ::android::hardware::details::HidlInstrumentor {
++    explicit BpHwWaydroidDisplay(const ::android::sp<::android::hardware::IBinder> &_hidl_impl);
++
++    /**
++     * The pure class is what this class wraps.
++     */
++    typedef IWaydroidDisplay Pure;
++
++    /**
++     * Type tag for use in template logic that indicates this is a 'proxy' class.
++     */
++    typedef ::android::hardware::details::bphw_tag _hidl_tag;
++
++    virtual bool isRemote() const override { return true; }
++
++    void onLastStrongRef(const void* id) override;
++
++    // Methods from ::vendor::waydroid::display::V1_3::IWaydroidDisplay follow.
++    static ::android::hardware::Return<void>  _hidl_postTaskBuffer(::android::hardware::IInterface* _hidl_this, ::android::hardware::details::HidlInstrumentor *_hidl_this_instrumentor, uint32_t taskId, uint32_t slot, const ::android::hardware::hidl_handle& buffer, uint32_t width, uint32_t height, uint32_t stride, int32_t format, const ::android::hardware::hidl_handle& acquireFence, postTaskBuffer_cb _hidl_cb);
++    static ::android::hardware::Return<void>  _hidl_updateTaskList(::android::hardware::IInterface* _hidl_this, ::android::hardware::details::HidlInstrumentor *_hidl_this_instrumentor, const ::android::hardware::hidl_vec<uint32_t>& tasks, updateTaskList_cb _hidl_cb);
++
++    // Methods from ::vendor::waydroid::display::V1_0::IWaydroidDisplay follow.
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerName(uint32_t layer, const ::android::hardware::hidl_string& name) override;
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerHandleInfo(uint32_t layer, uint32_t format, uint32_t stride) override;
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerHandleInfo(uint32_t format, uint32_t stride) override;
++
++    // Methods from ::vendor::waydroid::display::V1_1::IWaydroidDisplay follow.
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerSize(uint32_t layer, uint32_t width, uint32_t height) override;
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerSize(uint32_t width, uint32_t height) override;
++
++    // Methods from ::vendor::waydroid::display::V1_2::IWaydroidDisplay follow.
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setMouseMetadata(uint32_t layer, int32_t style, float hotspotX, float hotspotY) override;
++
++    // Methods from ::vendor::waydroid::display::V1_3::IWaydroidDisplay follow.
++    ::android::hardware::Return<void> postTaskBuffer(uint32_t taskId, uint32_t slot, const ::android::hardware::hidl_handle& buffer, uint32_t width, uint32_t height, uint32_t stride, int32_t format, const ::android::hardware::hidl_handle& acquireFence, postTaskBuffer_cb _hidl_cb) override;
++    ::android::hardware::Return<void> updateTaskList(const ::android::hardware::hidl_vec<uint32_t>& tasks, updateTaskList_cb _hidl_cb) override;
++
++    // Methods from ::android::hidl::base::V1_0::IBase follow.
++    ::android::hardware::Return<void> interfaceChain(interfaceChain_cb _hidl_cb) override;
++    ::android::hardware::Return<void> debug(const ::android::hardware::hidl_handle& fd, const ::android::hardware::hidl_vec<::android::hardware::hidl_string>& options) override;
++    ::android::hardware::Return<void> interfaceDescriptor(interfaceDescriptor_cb _hidl_cb) override;
++    ::android::hardware::Return<void> getHashChain(getHashChain_cb _hidl_cb) override;
++    ::android::hardware::Return<void> setHALInstrumentation() override;
++    ::android::hardware::Return<bool> linkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient, uint64_t cookie) override;
++    ::android::hardware::Return<void> ping() override;
++    ::android::hardware::Return<void> getDebugInfo(getDebugInfo_cb _hidl_cb) override;
++    ::android::hardware::Return<void> notifySyspropsChanged() override;
++    ::android::hardware::Return<bool> unlinkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient) override;
++
++private:
++    std::mutex _hidl_mMutex;
++    std::vector<::android::sp<::android::hardware::hidl_binder_death_recipient>> _hidl_mDeathRecipients;
++};
++
++}  // namespace V1_3
++}  // namespace display
++}  // namespace waydroid
++}  // namespace vendor
++
++#endif  // HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_3_BPHWWAYDROIDDISPLAY_H
+diff --git a/interfaces/display/include/vendor/waydroid/display/1.3/BsWaydroidDisplay.h b/interfaces/display/include/vendor/waydroid/display/1.3/BsWaydroidDisplay.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..5f883c55a6b48786c18f963ddc056a0b2f989210
+--- /dev/null
++++ b/interfaces/display/include/vendor/waydroid/display/1.3/BsWaydroidDisplay.h
+@@ -0,0 +1,592 @@
++#ifndef HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_3_BSWAYDROIDDISPLAY_H
++#define HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_3_BSWAYDROIDDISPLAY_H
++
++#include <android-base/macros.h>
++#include <cutils/trace.h>
++#include <future>
++#include <vendor/waydroid/display/1.3/IWaydroidDisplay.h>
++
++#include <hidl/HidlPassthroughSupport.h>
++#include <hidl/TaskRunner.h>
++namespace vendor {
++namespace waydroid {
++namespace display {
++namespace V1_3 {
++
++struct BsWaydroidDisplay : IWaydroidDisplay, ::android::hardware::details::HidlInstrumentor {
++    explicit BsWaydroidDisplay(const ::android::sp<IWaydroidDisplay> impl);
++
++    /**
++     * The pure class is what this class wraps.
++     */
++    typedef IWaydroidDisplay Pure;
++
++    typedef ::android::hardware::details::bs_tag _hidl_tag;
++
++    // Methods from ::vendor::waydroid::display::V1_0::IWaydroidDisplay follow.
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerName(uint32_t layer, const ::android::hardware::hidl_string& name) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::setLayerName::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&layer);
++            _hidl_args.push_back((void *)&name);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setLayerName", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->setLayerName(layer, name);
++
++        ::android::hardware::graphics::composer::V2_1::Error _hidl_out_error = _hidl_return;
++        (void) _hidl_out_error;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_error);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setLayerName", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerHandleInfo(uint32_t layer, uint32_t format, uint32_t stride) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::setLayerHandleInfo::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&layer);
++            _hidl_args.push_back((void *)&format);
++            _hidl_args.push_back((void *)&stride);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setLayerHandleInfo", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->setLayerHandleInfo(layer, format, stride);
++
++        ::android::hardware::graphics::composer::V2_1::Error _hidl_out_error = _hidl_return;
++        (void) _hidl_out_error;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_error);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setLayerHandleInfo", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerHandleInfo(uint32_t format, uint32_t stride) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::setTargetLayerHandleInfo::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&format);
++            _hidl_args.push_back((void *)&stride);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setTargetLayerHandleInfo", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->setTargetLayerHandleInfo(format, stride);
++
++        ::android::hardware::graphics::composer::V2_1::Error _hidl_out_error = _hidl_return;
++        (void) _hidl_out_error;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_error);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.0", "IWaydroidDisplay", "setTargetLayerHandleInfo", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++
++    // Methods from ::vendor::waydroid::display::V1_1::IWaydroidDisplay follow.
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerSize(uint32_t layer, uint32_t width, uint32_t height) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::setLayerSize::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&layer);
++            _hidl_args.push_back((void *)&width);
++            _hidl_args.push_back((void *)&height);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.1", "IWaydroidDisplay", "setLayerSize", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->setLayerSize(layer, width, height);
++
++        ::android::hardware::graphics::composer::V2_1::Error _hidl_out_error = _hidl_return;
++        (void) _hidl_out_error;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_error);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.1", "IWaydroidDisplay", "setLayerSize", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerSize(uint32_t width, uint32_t height) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::setTargetLayerSize::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&width);
++            _hidl_args.push_back((void *)&height);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.1", "IWaydroidDisplay", "setTargetLayerSize", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->setTargetLayerSize(width, height);
++
++        ::android::hardware::graphics::composer::V2_1::Error _hidl_out_error = _hidl_return;
++        (void) _hidl_out_error;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_error);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.1", "IWaydroidDisplay", "setTargetLayerSize", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++
++    // Methods from ::vendor::waydroid::display::V1_2::IWaydroidDisplay follow.
++    ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setMouseMetadata(uint32_t layer, int32_t style, float hotspotX, float hotspotY) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::setMouseMetadata::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&layer);
++            _hidl_args.push_back((void *)&style);
++            _hidl_args.push_back((void *)&hotspotX);
++            _hidl_args.push_back((void *)&hotspotY);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.2", "IWaydroidDisplay", "setMouseMetadata", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->setMouseMetadata(layer, style, hotspotX, hotspotY);
++
++        ::android::hardware::graphics::composer::V2_1::Error _hidl_out_error = _hidl_return;
++        (void) _hidl_out_error;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_error);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.2", "IWaydroidDisplay", "setMouseMetadata", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++
++    // Methods from ::vendor::waydroid::display::V1_3::IWaydroidDisplay follow.
++    ::android::hardware::Return<void> postTaskBuffer(uint32_t taskId, uint32_t slot, const ::android::hardware::hidl_handle& buffer, uint32_t width, uint32_t height, uint32_t stride, int32_t format, const ::android::hardware::hidl_handle& acquireFence, postTaskBuffer_cb _hidl_cb) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::postTaskBuffer::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&taskId);
++            _hidl_args.push_back((void *)&slot);
++            _hidl_args.push_back((void *)&buffer);
++            _hidl_args.push_back((void *)&width);
++            _hidl_args.push_back((void *)&height);
++            _hidl_args.push_back((void *)&stride);
++            _hidl_args.push_back((void *)&format);
++            _hidl_args.push_back((void *)&acquireFence);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.3", "IWaydroidDisplay", "postTaskBuffer", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->postTaskBuffer(taskId, slot, buffer, width, height, stride, format, acquireFence, [&](const auto &_hidl_out_error, const auto &_hidl_out_releasedSlots) {
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                _hidl_args.push_back((void *)&_hidl_out_error);
++                _hidl_args.push_back((void *)&_hidl_out_releasedSlots);
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.3", "IWaydroidDisplay", "postTaskBuffer", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++            _hidl_cb(_hidl_out_error, _hidl_out_releasedSlots);
++        });
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> updateTaskList(const ::android::hardware::hidl_vec<uint32_t>& tasks, updateTaskList_cb _hidl_cb) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::updateTaskList::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&tasks);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "vendor.waydroid.display", "1.3", "IWaydroidDisplay", "updateTaskList", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->updateTaskList(tasks, [&](const auto &_hidl_out_error, const auto &_hidl_out_wantedTasks) {
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                _hidl_args.push_back((void *)&_hidl_out_error);
++                _hidl_args.push_back((void *)&_hidl_out_wantedTasks);
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "vendor.waydroid.display", "1.3", "IWaydroidDisplay", "updateTaskList", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++            _hidl_cb(_hidl_out_error, _hidl_out_wantedTasks);
++        });
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++
++    // Methods from ::android::hidl::base::V1_0::IBase follow.
++    ::android::hardware::Return<void> interfaceChain(interfaceChain_cb _hidl_cb) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::interfaceChain::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "interfaceChain", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->interfaceChain([&](const auto &_hidl_out_descriptors) {
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                _hidl_args.push_back((void *)&_hidl_out_descriptors);
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "interfaceChain", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++            _hidl_cb(_hidl_out_descriptors);
++        });
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> debug(const ::android::hardware::hidl_handle& fd, const ::android::hardware::hidl_vec<::android::hardware::hidl_string>& options) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::debug::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&fd);
++            _hidl_args.push_back((void *)&options);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "debug", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->debug(fd, options);
++
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "debug", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> interfaceDescriptor(interfaceDescriptor_cb _hidl_cb) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::interfaceDescriptor::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "interfaceDescriptor", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->interfaceDescriptor([&](const auto &_hidl_out_descriptor) {
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                _hidl_args.push_back((void *)&_hidl_out_descriptor);
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "interfaceDescriptor", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++            _hidl_cb(_hidl_out_descriptor);
++        });
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> getHashChain(getHashChain_cb _hidl_cb) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::getHashChain::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "getHashChain", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->getHashChain([&](const auto &_hidl_out_hashchain) {
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                _hidl_args.push_back((void *)&_hidl_out_hashchain);
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "getHashChain", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++            _hidl_cb(_hidl_out_hashchain);
++        });
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> setHALInstrumentation() override {
++        configureInstrumentation();
++        return ::android::hardware::Void();
++    }
++
++    ::android::hardware::Return<bool> linkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient, uint64_t cookie) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::linkToDeath::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&recipient);
++            _hidl_args.push_back((void *)&cookie);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "linkToDeath", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->linkToDeath(recipient, cookie);
++
++        bool _hidl_out_success = _hidl_return;
++        (void) _hidl_out_success;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_success);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "linkToDeath", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> ping() override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::ping::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "ping", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->ping();
++
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "ping", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> getDebugInfo(getDebugInfo_cb _hidl_cb) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::getDebugInfo::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "getDebugInfo", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->getDebugInfo([&](const auto &_hidl_out_info) {
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                _hidl_args.push_back((void *)&_hidl_out_info);
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "getDebugInfo", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++            _hidl_cb(_hidl_out_info);
++        });
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++    ::android::hardware::Return<void> notifySyspropsChanged() override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::notifySyspropsChanged::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "notifySyspropsChanged", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = addOnewayTask([mImpl = this->mImpl
++        #ifdef __ANDROID_DEBUGGABLE__
++        , mEnableInstrumentation = this->mEnableInstrumentation, mInstrumentationCallbacks = this->mInstrumentationCallbacks
++        #endif // __ANDROID_DEBUGGABLE__
++        ] {
++            mImpl->notifySyspropsChanged();
++
++            atrace_end(ATRACE_TAG_HAL);
++            #ifdef __ANDROID_DEBUGGABLE__
++            if (UNLIKELY(mEnableInstrumentation)) {
++                std::vector<void *> _hidl_args;
++                for (const auto &callback: mInstrumentationCallbacks) {
++                    callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "notifySyspropsChanged", &_hidl_args);
++                }
++            }
++            #endif // __ANDROID_DEBUGGABLE__
++
++        });
++        return _hidl_return;
++    }
++    ::android::hardware::Return<bool> unlinkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient) override {
++        atrace_begin(ATRACE_TAG_HAL, "HIDL::IWaydroidDisplay::unlinkToDeath::passthrough");
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&recipient);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_ENTRY, "android.hidl.base", "1.0", "IBase", "unlinkToDeath", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        ::android::hardware::Status _hidl_error = ::android::hardware::Status::ok();
++        auto _hidl_return = mImpl->unlinkToDeath(recipient);
++
++        bool _hidl_out_success = _hidl_return;
++        (void) _hidl_out_success;
++        atrace_end(ATRACE_TAG_HAL);
++        #ifdef __ANDROID_DEBUGGABLE__
++        if (UNLIKELY(mEnableInstrumentation)) {
++            std::vector<void *> _hidl_args;
++            _hidl_args.push_back((void *)&_hidl_out_success);
++            for (const auto &callback: mInstrumentationCallbacks) {
++                callback(InstrumentationEvent::PASSTHROUGH_EXIT, "android.hidl.base", "1.0", "IBase", "unlinkToDeath", &_hidl_args);
++            }
++        }
++        #endif // __ANDROID_DEBUGGABLE__
++
++        if (!_hidl_error.isOk()) return _hidl_error;
++        return _hidl_return;
++    }
++
++private:
++    const ::android::sp<IWaydroidDisplay> mImpl;
++    ::android::hardware::details::TaskRunner mOnewayQueue;
++
++    ::android::hardware::Return<void> addOnewayTask(std::function<void(void)>);
++
++};
++
++}  // namespace V1_3
++}  // namespace display
++}  // namespace waydroid
++}  // namespace vendor
++
++#endif  // HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_3_BSWAYDROIDDISPLAY_H
+diff --git a/interfaces/display/include/vendor/waydroid/display/1.3/IHwWaydroidDisplay.h b/interfaces/display/include/vendor/waydroid/display/1.3/IHwWaydroidDisplay.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..9291e5e90d1b1c577401e08924c21933e7038739
+--- /dev/null
++++ b/interfaces/display/include/vendor/waydroid/display/1.3/IHwWaydroidDisplay.h
+@@ -0,0 +1,23 @@
++#ifndef HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_3_IHWWAYDROIDDISPLAY_H
++#define HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_3_IHWWAYDROIDDISPLAY_H
++
++#include <vendor/waydroid/display/1.3/IWaydroidDisplay.h>
++
++#include <android/hardware/graphics/composer/2.1/hwtypes.h>
++#include <vendor/waydroid/display/1.2/BnHwWaydroidDisplay.h>
++#include <vendor/waydroid/display/1.2/BpHwWaydroidDisplay.h>
++
++#include <hidl/Status.h>
++#include <hwbinder/IBinder.h>
++#include <hwbinder/Parcel.h>
++
++namespace vendor {
++namespace waydroid {
++namespace display {
++namespace V1_3 {
++}  // namespace V1_3
++}  // namespace display
++}  // namespace waydroid
++}  // namespace vendor
++
++#endif  // HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_3_IHWWAYDROIDDISPLAY_H
+diff --git a/interfaces/display/include/vendor/waydroid/display/1.3/IWaydroidDisplay.h b/interfaces/display/include/vendor/waydroid/display/1.3/IWaydroidDisplay.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..95f9b46d8da9736570d515bf36b45d07bfd47bb4
+--- /dev/null
++++ b/interfaces/display/include/vendor/waydroid/display/1.3/IWaydroidDisplay.h
+@@ -0,0 +1,314 @@
++#ifndef HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_3_IWAYDROIDDISPLAY_H
++#define HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_3_IWAYDROIDDISPLAY_H
++
++#include <android/hardware/graphics/composer/2.1/types.h>
++#include <vendor/waydroid/display/1.2/IWaydroidDisplay.h>
++
++#include <android/hidl/manager/1.0/IServiceNotification.h>
++
++#include <hidl/HidlSupport.h>
++#include <hidl/MQDescriptor.h>
++#include <hidl/Status.h>
++#include <utils/NativeHandle.h>
++#include <utils/misc.h>
++
++namespace vendor {
++namespace waydroid {
++namespace display {
++namespace V1_3 {
++
++struct IWaydroidDisplay : public ::vendor::waydroid::display::V1_2::IWaydroidDisplay {
++    /**
++     * Type tag for use in template logic that indicates this is a 'pure' class.
++     */
++    typedef ::android::hardware::details::i_tag _hidl_tag;
++
++    /**
++     * Fully qualified interface name: "vendor.waydroid.display@1.3::IWaydroidDisplay"
++     */
++    static const char* descriptor;
++
++    /**
++     * Returns whether this object's implementation is outside of the current process.
++     */
++    virtual bool isRemote() const override { return false; }
++
++    virtual ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerName(uint32_t layer, const ::android::hardware::hidl_string& name) override = 0;
++
++    virtual ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerHandleInfo(uint32_t layer, uint32_t format, uint32_t stride) override = 0;
++
++    virtual ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerHandleInfo(uint32_t format, uint32_t stride) override = 0;
++
++    virtual ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setLayerSize(uint32_t layer, uint32_t width, uint32_t height) override = 0;
++
++    virtual ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setTargetLayerSize(uint32_t width, uint32_t height) override = 0;
++
++    virtual ::android::hardware::Return<::android::hardware::graphics::composer::V2_1::Error> setMouseMetadata(uint32_t layer, int32_t style, float hotspotX, float hotspotY) override = 0;
++
++    /**
++     * Return callback for postTaskBuffer
++     */
++    using postTaskBuffer_cb = std::function<void(::android::hardware::graphics::composer::V2_1::Error error, const ::android::hardware::hidl_vec<uint32_t>& releasedSlots)>;
++    /**
++     * Post a rendered frame for an Android task. The HAL creates the task's
++     * toplevel on the first post and keeps one imported wl_buffer per
++     * (taskId, slot), re-importing when the metadata changes. Returns the
++     * slots the host compositor has released since the last call; the caller
++     * must only render into released (or never-posted) slots.
++     *
++     * Errors: BAD_DISPLAY task streams inactive; BAD_LAYER unknown or closing
++     * task; NO_RESOURCES slot busy or import failed.
++     */
++    virtual ::android::hardware::Return<void> postTaskBuffer(uint32_t taskId, uint32_t slot, const ::android::hardware::hidl_handle& buffer, uint32_t width, uint32_t height, uint32_t stride, int32_t format, const ::android::hardware::hidl_handle& acquireFence, postTaskBuffer_cb _hidl_cb) = 0;
++
++    /**
++     * Return callback for updateTaskList
++     */
++    using updateTaskList_cb = std::function<void(::android::hardware::graphics::composer::V2_1::Error error, const ::android::hardware::hidl_vec<uint32_t>& wantedTasks)>;
++    /**
++     * Offer the tasks the caller could stream this frame and learn which of
++     * them the HAL wants content for. Tasks left out of wantedTasks need not
++     * be rendered: unknown, closing or blacklisted tasks never get a card,
++     * and a card that is deactivated or unfocused keeps its last frame (a
++     * post would only be stashed). Returns BAD_DISPLAY while task streams
++     * are inactive; the caller should then render nothing.
++     */
++    virtual ::android::hardware::Return<void> updateTaskList(const ::android::hardware::hidl_vec<uint32_t>& tasks, updateTaskList_cb _hidl_cb) = 0;
++
++    /**
++     * Return callback for interfaceChain
++     */
++    using interfaceChain_cb = std::function<void(const ::android::hardware::hidl_vec<::android::hardware::hidl_string>& descriptors)>;
++    /*
++     * Provides run-time type information for this object.
++     * For example, for the following interface definition:
++     *     package android.hardware.foo@1.0;
++     *     interface IParent {};
++     *     interface IChild extends IParent {};
++     * Calling interfaceChain on an IChild object must yield the following:
++     *     ["android.hardware.foo@1.0::IChild",
++     *      "android.hardware.foo@1.0::IParent"
++     *      "android.hidl.base@1.0::IBase"]
++     *
++     * @return descriptors a vector of descriptors of the run-time type of the
++     *         object.
++     */
++    virtual ::android::hardware::Return<void> interfaceChain(interfaceChain_cb _hidl_cb) override;
++
++    /*
++     * Emit diagnostic information to the given file.
++     *
++     * Optionally overriden.
++     *
++     * @param fd      File descriptor to dump data to.
++     *                Must only be used for the duration of this call.
++     * @param options Arguments for debugging.
++     *                Must support empty for default debug information.
++     */
++    virtual ::android::hardware::Return<void> debug(const ::android::hardware::hidl_handle& fd, const ::android::hardware::hidl_vec<::android::hardware::hidl_string>& options) override;
++
++    /**
++     * Return callback for interfaceDescriptor
++     */
++    using interfaceDescriptor_cb = std::function<void(const ::android::hardware::hidl_string& descriptor)>;
++    /*
++     * Provides run-time type information for this object.
++     * For example, for the following interface definition:
++     *     package android.hardware.foo@1.0;
++     *     interface IParent {};
++     *     interface IChild extends IParent {};
++     * Calling interfaceDescriptor on an IChild object must yield
++     *     "android.hardware.foo@1.0::IChild"
++     *
++     * @return descriptor a descriptor of the run-time type of the
++     *         object (the first element of the vector returned by
++     *         interfaceChain())
++     */
++    virtual ::android::hardware::Return<void> interfaceDescriptor(interfaceDescriptor_cb _hidl_cb) override;
++
++    /**
++     * Return callback for getHashChain
++     */
++    using getHashChain_cb = std::function<void(const ::android::hardware::hidl_vec<::android::hardware::hidl_array<uint8_t, 32>>& hashchain)>;
++    /*
++     * Returns hashes of the source HAL files that define the interfaces of the
++     * runtime type information on the object.
++     * For example, for the following interface definition:
++     *     package android.hardware.foo@1.0;
++     *     interface IParent {};
++     *     interface IChild extends IParent {};
++     * Calling interfaceChain on an IChild object must yield the following:
++     *     [(hash of IChild.hal),
++     *      (hash of IParent.hal)
++     *      (hash of IBase.hal)].
++     *
++     * SHA-256 is used as the hashing algorithm. Each hash has 32 bytes
++     * according to SHA-256 standard.
++     *
++     * @return hashchain a vector of SHA-1 digests
++     */
++    virtual ::android::hardware::Return<void> getHashChain(getHashChain_cb _hidl_cb) override;
++
++    /*
++     * This method trigger the interface to enable/disable instrumentation based
++     * on system property hal.instrumentation.enable.
++     */
++    virtual ::android::hardware::Return<void> setHALInstrumentation() override;
++
++    /*
++     * Registers a death recipient, to be called when the process hosting this
++     * interface dies.
++     *
++     * @param recipient a hidl_death_recipient callback object
++     * @param cookie a cookie that must be returned with the callback
++     * @return success whether the death recipient was registered successfully.
++     */
++    virtual ::android::hardware::Return<bool> linkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient, uint64_t cookie) override;
++
++    /*
++     * Provides way to determine if interface is running without requesting
++     * any functionality.
++     */
++    virtual ::android::hardware::Return<void> ping() override;
++
++    /**
++     * Return callback for getDebugInfo
++     */
++    using getDebugInfo_cb = std::function<void(const ::android::hidl::base::V1_0::DebugInfo& info)>;
++    /*
++     * Get debug information on references on this interface.
++     * @return info debugging information. See comments of DebugInfo.
++     */
++    virtual ::android::hardware::Return<void> getDebugInfo(getDebugInfo_cb _hidl_cb) override;
++
++    /*
++     * This method notifies the interface that one or more system properties
++     * have changed. The default implementation calls
++     * (C++)  report_sysprop_change() in libcutils or
++     * (Java) android.os.SystemProperties.reportSyspropChanged,
++     * which in turn calls a set of registered callbacks (eg to update trace
++     * tags).
++     */
++    virtual ::android::hardware::Return<void> notifySyspropsChanged() override;
++
++    /*
++     * Unregisters the registered death recipient. If this service was registered
++     * multiple times with the same exact death recipient, this unlinks the most
++     * recently registered one.
++     *
++     * @param recipient a previously registered hidl_death_recipient callback
++     * @return success whether the death recipient was unregistered successfully.
++     */
++    virtual ::android::hardware::Return<bool> unlinkToDeath(const ::android::sp<::android::hardware::hidl_death_recipient>& recipient) override;
++
++    // cast static functions
++    /**
++     * This performs a checked cast based on what the underlying implementation actually is.
++     */
++    static ::android::hardware::Return<::android::sp<::vendor::waydroid::display::V1_3::IWaydroidDisplay>> castFrom(const ::android::sp<::vendor::waydroid::display::V1_3::IWaydroidDisplay>& parent, bool emitError = false);
++    /**
++     * This performs a checked cast based on what the underlying implementation actually is.
++     */
++    static ::android::hardware::Return<::android::sp<::vendor::waydroid::display::V1_3::IWaydroidDisplay>> castFrom(const ::android::sp<::vendor::waydroid::display::V1_2::IWaydroidDisplay>& parent, bool emitError = false);
++    /**
++     * This performs a checked cast based on what the underlying implementation actually is.
++     */
++    static ::android::hardware::Return<::android::sp<::vendor::waydroid::display::V1_3::IWaydroidDisplay>> castFrom(const ::android::sp<::vendor::waydroid::display::V1_1::IWaydroidDisplay>& parent, bool emitError = false);
++    /**
++     * This performs a checked cast based on what the underlying implementation actually is.
++     */
++    static ::android::hardware::Return<::android::sp<::vendor::waydroid::display::V1_3::IWaydroidDisplay>> castFrom(const ::android::sp<::vendor::waydroid::display::V1_0::IWaydroidDisplay>& parent, bool emitError = false);
++    /**
++     * This performs a checked cast based on what the underlying implementation actually is.
++     */
++    static ::android::hardware::Return<::android::sp<::vendor::waydroid::display::V1_3::IWaydroidDisplay>> castFrom(const ::android::sp<::android::hidl::base::V1_0::IBase>& parent, bool emitError = false);
++
++    // helper methods for interactions with the hwservicemanager
++    /**
++     * This gets the service of this type with the specified instance name. If the
++     * service is currently not available or not in the VINTF manifest on a Trebilized
++     * device, this will return nullptr. This is useful when you don't want to block
++     * during device boot. If getStub is true, this will try to return an unwrapped
++     * passthrough implementation in the same process. This is useful when getting an
++     * implementation from the same partition/compilation group.
++     *
++     * In general, prefer getService(std::string,bool)
++     */
++    static ::android::sp<IWaydroidDisplay> tryGetService(const std::string &serviceName="default", bool getStub=false);
++    /**
++     * Deprecated. See tryGetService(std::string, bool)
++     */
++    static ::android::sp<IWaydroidDisplay> tryGetService(const char serviceName[], bool getStub=false)  { std::string str(serviceName ? serviceName : "");      return tryGetService(str, getStub); }
++    /**
++     * Deprecated. See tryGetService(std::string, bool)
++     */
++    static ::android::sp<IWaydroidDisplay> tryGetService(const ::android::hardware::hidl_string& serviceName, bool getStub=false)  { std::string str(serviceName.c_str());      return tryGetService(str, getStub); }
++    /**
++     * Calls tryGetService("default", bool). This is the recommended instance name for singleton services.
++     */
++    static ::android::sp<IWaydroidDisplay> tryGetService(bool getStub) { return tryGetService("default", getStub); }
++    /**
++     * This gets the service of this type with the specified instance name. If the
++     * service is not in the VINTF manifest on a Trebilized device, this will return
++     * nullptr. If the service is not available, this will wait for the service to
++     * become available. If the service is a lazy service, this will start the service
++     * and return when it becomes available. If getStub is true, this will try to
++     * return an unwrapped passthrough implementation in the same process. This is
++     * useful when getting an implementation from the same partition/compilation group.
++     */
++    static ::android::sp<IWaydroidDisplay> getService(const std::string &serviceName="default", bool getStub=false);
++    /**
++     * Deprecated. See getService(std::string, bool)
++     */
++    static ::android::sp<IWaydroidDisplay> getService(const char serviceName[], bool getStub=false)  { std::string str(serviceName ? serviceName : "");      return getService(str, getStub); }
++    /**
++     * Deprecated. See getService(std::string, bool)
++     */
++    static ::android::sp<IWaydroidDisplay> getService(const ::android::hardware::hidl_string& serviceName, bool getStub=false)  { std::string str(serviceName.c_str());      return getService(str, getStub); }
++    /**
++     * Calls getService("default", bool). This is the recommended instance name for singleton services.
++     */
++    static ::android::sp<IWaydroidDisplay> getService(bool getStub) { return getService("default", getStub); }
++    /**
++     * Registers a service with the service manager. For Trebilized devices, the service
++     * must also be in the VINTF manifest.
++     */
++    __attribute__ ((warn_unused_result))::android::status_t registerAsService(const std::string &serviceName="default");
++    /**
++     * Registers for notifications for when a service is registered.
++     */
++    static bool registerForNotifications(
++            const std::string &serviceName,
++            const ::android::sp<::android::hidl::manager::V1_0::IServiceNotification> &notification);
++};
++
++//
++// type declarations for package
++//
++
++static inline std::string toString(const ::android::sp<::vendor::waydroid::display::V1_3::IWaydroidDisplay>& o);
++
++//
++// type header definitions for package
++//
++
++static inline std::string toString(const ::android::sp<::vendor::waydroid::display::V1_3::IWaydroidDisplay>& o) {
++    std::string os = "[class or subclass of ";
++    os += ::vendor::waydroid::display::V1_3::IWaydroidDisplay::descriptor;
++    os += "]";
++    os += o->isRemote() ? "@remote" : "@local";
++    return os;
++}
++
++
++}  // namespace V1_3
++}  // namespace display
++}  // namespace waydroid
++}  // namespace vendor
++
++//
++// global type declarations for package
++//
++
++
++#endif  // HIDL_GENERATED_VENDOR_WAYDROID_DISPLAY_V1_3_IWAYDROIDDISPLAY_H
+-- 
+2.56.0
+

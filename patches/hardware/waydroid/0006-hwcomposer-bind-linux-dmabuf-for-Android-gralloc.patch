@@ -1,0 +1,27 @@
+From d7cbdaf285fc872b3ce67cf086a5a5dc6acd875b Mon Sep 17 00:00:00 2001
+From: Dick Valentine <asetium@gmail.com>
+Date: Mon, 12 Oct 2026 13:34:14 +0200
+Subject: [PATCH 06/11] hwcomposer: bind linux-dmabuf for Android gralloc
+
+---
+ hwcomposer/wayland-hwc.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/hwcomposer/wayland-hwc.cpp b/hwcomposer/wayland-hwc.cpp
+index a3e345adca5ed0d11c756cffc288f385057025b1..be2d51774ee0134487dc4bafe28c4b17e6fd2bf8 100644
+--- a/hwcomposer/wayland-hwc.cpp
++++ b/hwcomposer/wayland-hwc.cpp
+@@ -1885,7 +1885,9 @@ registry_handle_global(void *data, struct wl_registry *registry,
+                (strcmp(interface, "android_wlegl") == 0)) {
+         d->android_wlegl = (struct android_wlegl*)wl_registry_bind(registry, id,
+                 &android_wlegl_interface, 1);
+-    } else if ((d->gtype == GrallocType::GRALLOC_GBM || d->gtype == GrallocType::GRALLOC_CROS) &&
++    } else if ((d->gtype == GrallocType::GRALLOC_GBM ||
++                d->gtype == GrallocType::GRALLOC_CROS ||
++                d->gtype == GrallocType::GRALLOC_ANDROID) &&
+                (strcmp(interface, "zwp_linux_dmabuf_v1") == 0)) {
+         if (version < 3)
+             return;
+-- 
+2.56.0
+

@@ -1,0 +1,25 @@
+From 06f2c7b95136daae1cda624c72469391c6713128 Mon Sep 17 00:00:00 2001
+From: Dick Valentine <asetium@gmail.com>
+Date: Mon, 12 Oct 2026 11:12:05 +0200
+Subject: [PATCH] build: allow vendor variant of libskia_skcms
+
+Change-Id: Ia896396cc76430ee1aed43d5b22d0500afc2b3e8
+---
+ Android.bp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Android.bp b/Android.bp
+index 2eed822b2b5cd6c8f0352b370203aca45a9fa134..fd72cf61899cc08406677b0ec7404a343970ddc1 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -1136,6 +1136,7 @@ gensrcs {
+ cc_library_static {
+     name: "libskia_skcms",
+     host_supported: true,
++    vendor_available: true,
+     sdk_version: "current",
+     srcs: [
+         "modules/skcms/skcms.cc",
+-- 
+2.56.0
+

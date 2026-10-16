@@ -1,0 +1,65 @@
+From 9d335457b81b2341b32bfc21bdde1d2a6ff2a364 Mon Sep 17 00:00:00 2001
+From: Dick Valentine <asetium@gmail.com>
+Date: Fri, 16 Oct 2026 22:13:03 +0200
+Subject: [PATCH] waydroid-init: detect CM3588 proprietary Mali graphics stack
+
+---
+ waydroid-init/gpu_utils.cpp | 18 ++++++++++++++++++
+ waydroid-init/main.cpp      |  5 +++++
+ 2 files changed, 23 insertions(+)
+
+diff --git a/waydroid-init/gpu_utils.cpp b/waydroid-init/gpu_utils.cpp
+index 0cc58e7b28fffde2dbc82041f8acf98352beab6f..26a160c491ba4454529a5d1dda54fb41cdc08cf6 100644
+--- a/waydroid-init/gpu_utils.cpp
++++ b/waydroid-init/gpu_utils.cpp
+@@ -19,6 +19,7 @@
+ 
+ #include "log.h"
+ #include "gpu_utils.h"
++#include <android-base/properties.h>
+ #include "minigbm_intel_ids.h"
+ 
+ void GpuUtils::getKernelDriver() {
+@@ -99,6 +100,23 @@ GpuUtils::GpuUtils(const std::string &renderNode, bool swRendering) {
+ 
+     getKernelDriver();
+ 
++    // The CM3588 exposes the Rockchip display DRM render node, while
++    // its proprietary Mali GPU is accessed through /dev/mali0.
++    // Do not classify arbitrary rockchip-drm devices as Mali.
++    if (gpuKernelDriverName == "rockchip-drm" &&
++        android::base::GetProperty("ro.board.platform", "") == "rk3588" &&
++        std::filesystem::is_character_file("/dev/mali0") &&
++        std::filesystem::is_regular_file(
++            "/vendor/lib64/egl/libGLES_mali.so") &&
++        std::filesystem::is_regular_file(
++            "/vendor/lib64/hw/android.hardware.graphics.mapper@4.0-impl-bifrost.so")) {
++        this->driverInfo = GpuDriverInfo{
++            "rockchip-drm", 0, "mali", std::nullopt, "bifrost"
++        };
++        Log::info("CM3588 proprietary Mali detected: EGL=mali, gralloc=bifrost");
++        return;
++    }
++
+     gpuGeneration = gpuKernelDriverName == "i915" ? getIntelGpuGeneration() : 0;
+ 
+     for (const auto &e : driverInfoList) {
+diff --git a/waydroid-init/main.cpp b/waydroid-init/main.cpp
+index 14f86c4a01e7af40e88c9e99421156e06ac0bfcd..0111cdb48a5b55e1ec900f7989709ce0c6d02b02 100644
+--- a/waydroid-init/main.cpp
++++ b/waydroid-init/main.cpp
+@@ -124,6 +124,11 @@ int main(int argc, char **argv) {
+     if (grallocImpl == "default") {
+         Log::info("Using software rendering");
+         settings.updateSetting("ro.surface_flinger.supports_background_blur", "0");
++    } else if (grallocImpl == "bifrost") {
++        // CM3588 uses the existing HIDL 2.0 and AIDL V1 allocator
++        // services with the proprietary Bifrost mapper.
++        // There is no vendor.graphics.allocator-4-0-bifrost service.
++        Log::info("Using Bifrost with existing graphics allocator services");
+     } else {
+         stopService("vendor.gralloc-2-0");
+ 
+-- 
+2.56.0
+

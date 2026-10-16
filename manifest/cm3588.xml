@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote name="cm3588" fetch="https://github.com/fviolence/" />
+  <remote name="waydroid-original" fetch="https://github.com/waydroid/" />
+
+  <project
+    name="android_device_cm3588_atv"
+    path="device/cm3588/cm3588_atv"
+    remote="cm3588"
+    revision="98c4fddaff0c9113108e8e9cc09aa77d0c8def3e"
+    upstream="refs/heads/cm3588/android16" />
+
+  <project
+    name="android_vendor_cm3588"
+    path="vendor/cm3588"
+    remote="cm3588"
+    revision="e725d4301fda5be3016f0f5afb57aad119b1fbca"
+    upstream="refs/heads/cm3588/android16" />
+
+  <project
+    name="android_hardware_waydroid"
+    path="hardware/waydroid"
+    remote="waydroid-original"
+    revision="ce61fbc895d183279c304c1d1c516a710d587c7f"
+    upstream="refs/heads/lineage-20" />
+</manifest>

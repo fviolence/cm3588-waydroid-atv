@@ -1,0 +1,25 @@
+From 4aa57132474ec82c55d9fb2fbed322609fddad8c Mon Sep 17 00:00:00 2001
+From: Dick Valentine <asetium@gmail.com>
+Date: Mon, 12 Oct 2026 11:19:06 +0200
+Subject: [PATCH 1/2] build: allow vendor variant of xmp_toolkit_sdk
+
+Change-Id: I1fb6adf46acc8bc29ef4625d51b69866290ccb9e
+---
+ Android.bp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Android.bp b/Android.bp
+index cce5062d19672768ac9a5646133d0416d56f9b92..5b0e22f030b2b6e947433fc8696f2b55324d2d8e 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -37,6 +37,7 @@ cc_library {
+ cc_library {
+     name: "xmp_toolkit_sdk",
+     host_supported: true,
++    vendor_available: true,
+     sdk_version: "current",
+     stl: "c++_shared",
+     export_include_dirs: [
+-- 
+2.56.0
+

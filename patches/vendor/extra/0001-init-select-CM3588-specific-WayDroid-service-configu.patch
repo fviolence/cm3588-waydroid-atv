@@ -1,0 +1,91 @@
+From 4a88ef72bb7b27acfbdd5697352cd9ed937d322d Mon Sep 17 00:00:00 2001
+From: Dick Valentine <asetium@gmail.com>
+Date: Fri, 16 Oct 2026 22:37:54 +0200
+Subject: [PATCH] init: select CM3588-specific WayDroid service configuration
+
+---
+ rootdir/Android.mk                      |  4 ++
+ rootdir/etc/init.waydroid.cm3588_atv.rc | 55 +++++++++++++++++++++++++
+ 2 files changed, 59 insertions(+)
+ create mode 100644 rootdir/etc/init.waydroid.cm3588_atv.rc
+
+diff --git a/rootdir/Android.mk b/rootdir/Android.mk
+index e681fc06e1ede6c1bad1a21a9759abbac0a6fdd5..118b9b31ad37f740c25bbd1780d37e32231cdea7 100644
+--- a/rootdir/Android.mk
++++ b/rootdir/Android.mk
+@@ -4,7 +4,11 @@ include $(CLEAR_VARS)
+ LOCAL_MODULE            := init.waydroid.rc
+ LOCAL_MODULE_TAGS       := optional
+ LOCAL_MODULE_CLASS      := ETC
++ifeq ($(TARGET_PRODUCT),lineage_cm3588_atv)
++LOCAL_SRC_FILES         := etc/init.waydroid.cm3588_atv.rc
++else
+ LOCAL_SRC_FILES         := etc/init.waydroid.rc
++endif
+ LOCAL_MODULE_PATH       := $(TARGET_OUT_ETC)/init
+ include $(BUILD_PREBUILT)
+ 
+diff --git a/rootdir/etc/init.waydroid.cm3588_atv.rc b/rootdir/etc/init.waydroid.cm3588_atv.rc
+new file mode 100644
+index 0000000000000000000000000000000000000000..0c5d9eaef991117ca0e79e8c097edf14a46c8999
+--- /dev/null
++++ b/rootdir/etc/init.waydroid.cm3588_atv.rc
+@@ -0,0 +1,55 @@
++on boot
++    # Allow to access WebView
++    chmod 0755 /sys/kernel/debug
++    chmod 0755 /sys/kernel/debug/tracing
++
++on property:ro.waydroid.running_in_docker=1 && property:sys.boot_completed=1
++    start adbd
++
++on post-fs-data
++    mkdir /data/icons 0775 system system
++    mkdir /data/waydroid_tmp 0755 host system
++
++service vendor.audio-hal-2-0 /vendor/bin/hw/android.hardware.audio@2.0-service
++    override
++    class hal
++    user host
++    # media gid needed for /dev/fm (radio) and for /data/misc/media (tee)
++    group audioserver audio camera drmrpc inet media mediadrm net_bt net_bt_admin net_bw_acct wakelock
++    capabilities BLOCK_SUSPEND
++    ioprio rt 4
++    writepid /dev/cpuset/foreground/tasks /dev/stune/foreground/tasks
++    # audioflinger restarts itself when it loses connection with the hal
++    # and its .rc file has an "onrestart restart audio-hal" rule, thus
++    # an additional auto-restart from the init process isn't needed.
++    oneshot
++    interface android.hardware.audio@4.0::IDevicesFactory default
++    interface android.hardware.audio@2.0::IDevicesFactory default
++
++service vendor.audio-hal /vendor/bin/hw/android.hardware.audio.service
++    override
++    class hal
++    user host
++    # media gid needed for /dev/fm (radio) and for /data/misc/media (tee)
++    group audioserver audio camera drmrpc inet media mediadrm net_bt net_bt_admin net_bw_acct wakelock context_hub
++    capabilities BLOCK_SUSPEND
++    # setting RLIMIT_RTPRIO allows binder RT priority inheritance
++    rlimit rtprio 10 10
++    ioprio rt 4
++    task_profiles ProcessCapacityHigh HighPerformance
++    onrestart restart audioserver
++
++service vendor.hwcomposer-2-1 /vendor/bin/hw/android.hardware.graphics.composer@2.1-service --desktop_file_hint=Waydroid.desktop
++    override
++    class hal animation
++    user host
++    group system graphics drmrpc
++    capabilities SYS_NICE
++    onrestart restart surfaceflinger
++    task_profiles ServiceCapacityLow
++
++on property:ro.vndk.version=28
++    mount none /dev/null /vendor_extra/lib/libmedia_codecserviceregistrant.so ro bind
++
++on property:persist.waydroid.multi_windows=true
++    mount none /system/etc/hidden_xml/pc.xml /system/etc/permissions/pc.xml ro bind
+-- 
+2.56.0
+

@@ -1,0 +1,50 @@
+From 5a4f0a784cb8d54fdd00b8a8f83ab9536f1be021 Mon Sep 17 00:00:00 2001
+From: Dick Valentine <asetium@gmail.com>
+Date: Fri, 16 Oct 2026 22:52:05 +0200
+Subject: [PATCH 1/2] libprocessgroup: tolerate busy cgroup namespace root in
+ containers
+
+---
+ libprocessgroup/setup/cgroup_map_write.cpp | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/libprocessgroup/setup/cgroup_map_write.cpp b/libprocessgroup/setup/cgroup_map_write.cpp
+index ea63eba36069ff40172bc7642150885ad7ffeb46..e782512393bda42cb0da8089f37d3b0671239359 100644
+--- a/libprocessgroup/setup/cgroup_map_write.cpp
++++ b/libprocessgroup/setup/cgroup_map_write.cpp
+@@ -335,15 +335,31 @@ bool CgroupSetup() {
+         return false;
+     }
+ 
++    // A container's cgroup namespace root may itself be a non-root
++    // cgroup with domain controllers enabled. Moving processes directly
++    // into it then fails with EBUSY (no-internal-process constraint).
++    //
++    // Keep Android init processes in the existing /init leaf in that
++    // case, while still setting up the apps/system subhierarchies.
++    bool keep_init_cgroup = false;
++
+     std::istringstream iss(init_pids);
+     for (std::string pid; iss >> pid;) {
+         if (!android::base::WriteStringToFile(pid, cgroup_v2_root + "/cgroup.procs")) {
++            if (errno == EBUSY) {
++                LOG(WARNING) << "Cannot move PID " << pid
++                             << " into cgroup namespace root (EBUSY); "
++                             << "preserving init cgroup";
++                keep_init_cgroup = true;
++                break;
++            }
++
+             PLOG(ERROR) << "Failed to move PID " << pid << " into root cgroup";
+             return false;
+         }
+     }
+ 
+-    if (rmdir((cgroup_v2_root + "/init").c_str()) != 0) {
++    if (!keep_init_cgroup && rmdir((cgroup_v2_root + "/init").c_str()) != 0) {
+         PLOG(ERROR) << "Failed to remove init cgroup";
+         return false;
+     }
+-- 
+2.56.0
+

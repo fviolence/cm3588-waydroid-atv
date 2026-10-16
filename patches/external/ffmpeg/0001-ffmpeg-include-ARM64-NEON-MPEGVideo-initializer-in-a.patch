@@ -1,0 +1,39 @@
+From 52ffa75df014f85ec40a69b644b66b24c54bd3ae Mon Sep 17 00:00:00 2001
+From: Dick Valentine <asetium@gmail.com>
+Date: Fri, 16 Oct 2026 22:47:32 +0200
+Subject: [PATCH] ffmpeg: include ARM64 NEON MPEGVideo initializer in avcodec
+
+---
+ android/build.mk | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/android/build.mk b/android/build.mk
+index 1991aebecdb252296d3d1fc20654a2df7569c73d..8d4085236e99d56baa1cd7e64e80ae4b3ec212d5 100644
+--- a/android/build.mk
++++ b/android/build.mk
+@@ -61,6 +61,22 @@ LOCAL_PROPRIETARY_MODULE := true
+ 
+ LOCAL_SRC_FILES := $(C_FILES) $(S_FILES)
+ 
++# CM3588-FFMPEG-ARM64-NEON
++# The Android object list omits the NEON MPEGVideo initializer,
++# although HAVE_INTRINSICS_NEON enables its caller on AArch64.
++ifeq ($(NAME),avcodec)
++ifeq ($(TARGET_ARCH),arm64)
++ifneq ($(wildcard $(LOCAL_PATH)/neon/mpegvideo.c),)
++LOCAL_SRC_FILES += neon/mpegvideo.c
++else ifneq ($(wildcard $(LOCAL_PATH)/libavcodec/neon/mpegvideo.c),)
++LOCAL_SRC_FILES += libavcodec/neon/mpegvideo.c
++else
++$(error Unable to locate FFmpeg NEON MPEGVideo source)
++endif
++endif
++endif
++
++
+ LOCAL_HEADER_LIBRARIES := libva_headers
+ LOCAL_C_INCLUDES := $(SUBDIR) $(FFMPEG_DIR) \
+ 					external/dav1d/include
+-- 
+2.56.0
+

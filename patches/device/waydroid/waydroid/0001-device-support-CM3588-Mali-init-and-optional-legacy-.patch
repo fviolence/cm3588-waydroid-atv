@@ -1,0 +1,101 @@
+From 00a4e67f380161a47da5c8839474c6f1a38f4690 Mon Sep 17 00:00:00 2001
+From: Dick Valentine <asetium@gmail.com>
+Date: Fri, 16 Oct 2026 22:16:49 +0200
+Subject: [PATCH] device: support CM3588 Mali init and optional legacy HALs
+
+---
+ configs/init.cm3588.mali.rc |  5 +++++
+ configs/ueventd.cm3588.rc   |  3 +++
+ device.mk                   | 26 +++++++++++++++++++++-----
+ 3 files changed, 29 insertions(+), 5 deletions(-)
+ create mode 100644 configs/init.cm3588.mali.rc
+ create mode 100644 configs/ueventd.cm3588.rc
+
+diff --git a/configs/init.cm3588.mali.rc b/configs/init.cm3588.mali.rc
+new file mode 100644
+index 0000000000000000000000000000000000000000..97c1999e40fd5ce9dd010d2e8e007565ebcca4b8
+--- /dev/null
++++ b/configs/init.cm3588.mali.rc
+@@ -0,0 +1,5 @@
++# CM3588 proprietary Mali-G610 device permissions.
++# Applied after Android device coldboot and before regular boot.
++on post-fs-data
++    chown root graphics /dev/mali0
++    chmod 0666 /dev/mali0
+diff --git a/configs/ueventd.cm3588.rc b/configs/ueventd.cm3588.rc
+new file mode 100644
+index 0000000000000000000000000000000000000000..f01dd4bf1b9dfc8fa2112b3529bb77add3ca8ce3
+--- /dev/null
++++ b/configs/ueventd.cm3588.rc
+@@ -0,0 +1,3 @@
++# CM3588 / RK3588 proprietary Mali-G610 device.
++# Android GPU clients require access to the Mali kernel interface.
++/dev/mali0    0666    root    graphics
+diff --git a/device.mk b/device.mk
+index dbcee30cb5025c07c583e2bc282e8191743a8995..61e5490c250342ba92f080b2962566a088cc24b1 100644
+--- a/device.mk
++++ b/device.mk
+@@ -62,6 +62,7 @@ PRODUCT_PACKAGES += \
+     android.hardware.bluetooth@1.1-service.sim
+ 
+ # Camera
++ifneq ($(WAYDROID_ENABLE_EXTERNAL_CAMERA),false)
+ USE_CAMERA_V4L2_HAL := true
+ 
+ PRODUCT_PACKAGES += \
+@@ -71,17 +72,29 @@ PRODUCT_PACKAGES += \
+ PRODUCT_COPY_FILES += \
+     $(LOCAL_PATH)/configs/external_camera_config.xml:$(TARGET_COPY_OUT_VENDOR)/etc/external_camera_config.xml
+ 
++PRODUCT_COPY_FILES += \
++    frameworks/native/data/etc/android.hardware.camera.flash-autofocus.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.flash-autofocus.xml \
++    frameworks/native/data/etc/android.hardware.camera.front.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.front.xml \
++    frameworks/native/data/etc/android.hardware.camera.full.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.full.xml \
++    frameworks/native/data/etc/android.hardware.camera.raw.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.raw.xml
++endif # WAYDROID_ENABLE_EXTERNAL_CAMERA
++
+ # Display
+ PRODUCT_PACKAGES += \
+     android.hardware.graphics.allocator@2.0-impl \
+     android.hardware.graphics.allocator@2.0-service \
+     android.hardware.graphics.composer@2.1-service \
+-    android.hardware.graphics.composer@2.4-service \
+     android.hardware.graphics.mapper@2.0-impl-2.1 \
+     vendor.waydroid.task@1.0-service \
+     hwcomposer.drm_minigbm \
+     hwcomposer.waydroid
+ 
++# Optional HWC 2.4 service for generic WayDroid products.
++ifneq ($(WAYDROID_ENABLE_HWC_2_4),false)
++PRODUCT_PACKAGES += \
++    android.hardware.graphics.composer@2.4-service
++endif
++
+ PRODUCT_PACKAGES += \
+     android.hardware.graphics.common-V4-ndk
+ 
+@@ -254,10 +267,6 @@ PRODUCT_COPY_FILES += \
+     $(LOCAL_PATH)/configs/empty_permission.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions.disabled/empty_permission.xml \
+     frameworks/native/data/etc/handheld_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/handheld_core_hardware.xml \
+     frameworks/native/data/etc/android.hardware.audio.low_latency.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.audio.low_latency.xml \
+-    frameworks/native/data/etc/android.hardware.camera.flash-autofocus.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.flash-autofocus.xml \
+-    frameworks/native/data/etc/android.hardware.camera.front.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.front.xml \
+-    frameworks/native/data/etc/android.hardware.camera.full.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.full.xml \
+-    frameworks/native/data/etc/android.hardware.camera.raw.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.raw.xml \
+     frameworks/native/data/etc/android.hardware.location.gps.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.location.gps.xml \
+     frameworks/native/data/etc/android.hardware.ethernet.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.ethernet.xml \
+     frameworks/native/data/etc/android.hardware.location.gps.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.location.gps.xml \
+@@ -340,3 +349,10 @@ PRODUCT_DEXPREOPT_SPEED_APPS += \
+ # Fingerprint spoof for GApps
+ BUILD_FINGERPRINT := google/tangorpro/tangorpro:16/BP4A.260205.001/14624666:user/release-keys
+ endif
++
++# CM3588 proprietary Mali device permissions.
++ifeq ($(TARGET_PRODUCT),lineage_cm3588_atv)
++PRODUCT_COPY_FILES += \
++    $(LOCAL_PATH)/configs/ueventd.cm3588.rc:$(TARGET_COPY_OUT_VENDOR)/etc/ueventd.rc \
++    $(LOCAL_PATH)/configs/init.cm3588.mali.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/init.cm3588.mali.rc
++endif
+-- 
+2.56.0
+
